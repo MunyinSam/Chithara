@@ -4,7 +4,7 @@ from .models import User, Song, GenerationHistory
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'google_id', 'email', 'name', 'daily_generation_count', 'last_generation_data']
+        fields = ['id', 'google_id', 'email', 'name', 'daily_generation_count', 'last_generation_date']
         read_only_fields = ['id', 'daily_generation_count', 'last_generation_date']
 
 class SongSerializer(serializers.ModelSerializer):

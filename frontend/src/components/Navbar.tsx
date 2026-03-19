@@ -14,24 +14,24 @@ export function NavBar() {
 					<div className="flex-none flex items-center pr-4 md:pr-10">
 						<Link href="/" className="flex items-center space-x-2">
 							<span className="font-(family-name:--font-young-serif) text-xl text-black">
-								Vnyl.AI
+								Chitara
 							</span>
-							<div className="font-(family-name:--font-monoton)">
-								O
-							</div>
 						</Link>
 					</div>
 
 					<nav className="hidden md:flex items-center space-x-6">
-						<Link href="/decks/all" className={linkClasses}>
+						{/* <Link href="/decks/all" className={linkClasses}>
 							Your Library
 						</Link>
 						<Link href="/decks" className={linkClasses}>
 							Generate A Song
+						</Link> */}
+						<Link href="/api-docs" className={linkClasses}>
+							API Docs
 						</Link>
-						<Link href="/decks/create" className={linkClasses}>
+						{/* <Link href="/decks/create" className={linkClasses}>
 							Add
-						</Link>
+						</Link> */}
 					</nav>
 				</div>
 			</div>

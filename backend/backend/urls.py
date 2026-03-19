@@ -15,8 +15,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from rest_framework.schemas import get_schema_view
+
+schema_view = get_schema_view(
+    title='Cithara API',
+    description='OpenAPI schema for the Cithara backend',
+    version='1.0.0',
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/schema/', schema_view, name='openapi-schema'),
+    path('api/', include('appname.urls')),  # Connect to appname's URLs
 ]
