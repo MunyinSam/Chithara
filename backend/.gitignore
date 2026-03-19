@@ -59,3 +59,4 @@ appname/migrations/__pycache__
 appname/__pycache__
 
 venv
+.venv
