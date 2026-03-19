@@ -79,6 +79,12 @@ npm run dev
 
 Frontend runs at http://localhost:3000
 
+*Note If the frontend has an error regarding tailwindcss
+try running
+```
+npm i --save-dev @types/swagger-ui-react
+```
+
 ## API Overview
 
 The backend exposes RESTful CRUD endpoints using Django REST Framework routers.
