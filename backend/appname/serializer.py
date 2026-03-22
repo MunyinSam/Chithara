@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import User, Song, GenerationHistory
+from .modules.User import User
+from .modules.Song import Song
+from .modules.GenerationHistory import GenerationHistory
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

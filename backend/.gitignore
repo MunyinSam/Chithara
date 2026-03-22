@@ -57,6 +57,7 @@ postgres-data/
 backend/__pycache__
 appname/migrations/__pycache__
 appname/__pycache__
+appname/modules/__pycache__
 
 venv
 .venv

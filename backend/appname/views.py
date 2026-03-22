@@ -2,7 +2,9 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.schemas.openapi import AutoSchema
-from .models import User, Song, GenerationHistory
+from .modules.User import User
+from .modules.Song import Song
+from .modules.GenerationHistory import GenerationHistory
 from .serializer import UserSerializer, SongSerializer, GenerationHistorySerializer
 
 # Create your views here.
