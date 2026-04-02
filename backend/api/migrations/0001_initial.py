@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('privacy_status', models.CharField(choices=[('PRIVATE', 'Private'), ('PUBLIC', 'Public')], default='PRIVATE', max_length=10)),
                 ('share_token', models.CharField(blank=True, max_length=100, null=True, unique=True)),
-                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='songs', to='appname.user')),
+                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='songs', to='api.user')),
             ],
         ),
         migrations.CreateModel(
@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(default='PENDING', max_length=50)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('error_message', models.TextField(blank=True, null=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='appname.user')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.user')),
             ],
         ),
     ]

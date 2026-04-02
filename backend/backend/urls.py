@@ -27,5 +27,5 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/schema/', schema_view, name='openapi-schema'),
-    path('api/', include('appname.urls')),  # Connect to appname's URLs
+    path('api/', include('api.urls')),
 ]

@@ -6,7 +6,7 @@ const SwaggerUI = dynamic(() => import('swagger-ui-react'), { ssr: false });
 
 const schemaUrl =
 	process.env.NEXT_PUBLIC_API_SCHEMA_URL ??
-	'http://127.0.0.1:8000/api/schema/';
+	'http://127.0.0.1:8080/api/schema/';
 
 export default function ApiDocsPage() {
 	return (
