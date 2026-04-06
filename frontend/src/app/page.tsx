@@ -1,4 +1,45 @@
 import Image from 'next/image';
+import { buttonVariants } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+
+const features = [
+  {
+    icon: '🎵',
+    title: 'Text to Music',
+    body: 'Describe any song in plain English. Our AI handles the rest — genre, mood, tempo, and more.',
+  },
+  {
+    icon: '📚',
+    title: 'Your Library',
+    body: 'Every generated song is saved to your library. Keep them private or share them with a link.',
+  },
+  {
+    icon: '🕓',
+    title: 'Generation History',
+    body: "See every prompt you've tried. Revisit past generations and iterate on your ideas.",
+  },
+];
+
+const steps = [
+  {
+    n: '1',
+    title: 'Write your prompt',
+    desc: 'Type what you want: "a calm lofi beat for studying" or "upbeat pop song about summer".',
+  },
+  {
+    n: '2',
+    title: 'Pick a style',
+    desc: "Choose a genre and vibe to guide the AI's interpretation of your prompt.",
+  },
+  {
+    n: '3',
+    title: 'Listen and save',
+    desc: 'Your song is ready in seconds. Save it to your library or share it with anyone.',
+  },
+];
 
 export default function Home() {
   return (
@@ -6,7 +47,6 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative flex flex-col items-center justify-center text-center px-6 py-40 overflow-hidden">
-        {/* Background image */}
         <Image
           src="/images/hero.jpg"
           alt="Music studio"
@@ -14,14 +54,12 @@ export default function Home() {
           className="object-cover"
           priority
         />
-        {/* Dark overlay */}
         <div className="absolute inset-0 bg-black/65" />
 
-        {/* Content */}
         <div className="relative z-10 flex flex-col items-center">
-          <span className="text-sm font-medium text-indigo-400 mb-4 tracking-wide uppercase">
+          <Badge variant="secondary" className="mb-4 uppercase tracking-wide text-indigo-400 bg-white/10 border-white/20 text-xs">
             AI Music Generation
-          </span>
+          </Badge>
           <h1 className="text-5xl md:text-7xl font-bold leading-tight tracking-tight text-white mb-6">
             Turn your words<br />into music.
           </h1>
@@ -30,16 +68,10 @@ export default function Home() {
             generate original songs from your prompts — instantly.
           </p>
           <div className="flex gap-4 flex-wrap justify-center">
-            <a
-              href="/generation"
-              className="px-8 py-3 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-            >
+            <a href="/generation" className={cn(buttonVariants({ size: 'lg' }), 'bg-indigo-600 hover:bg-indigo-700 text-white')}>
               Generate a Song
             </a>
-            <a
-              href="#how-it-works"
-              className="px-8 py-3 bg-white/10 text-white rounded-lg text-sm font-medium border border-white/20 hover:bg-white/20 transition-colors backdrop-blur-sm"
-            >
+            <a href="#how-it-works" className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'bg-white/10 text-white border-white/20 hover:bg-white/20 backdrop-blur-sm')}>
               Learn More
             </a>
           </div>
@@ -55,31 +87,21 @@ export default function Home() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            {
-              icon: "🎵",
-              title: "Text to Music",
-              body: "Describe any song in plain English. Our AI handles the rest — genre, mood, tempo, and more.",
-            },
-            {
-              icon: "📚",
-              title: "Your Library",
-              body: "Every generated song is saved to your library. Keep them private or share them with a link.",
-            },
-            {
-              icon: "🕓",
-              title: "Generation History",
-              body: "See every prompt you've tried. Revisit past generations and iterate on your ideas.",
-            },
-          ].map((f) => (
-            <div key={f.title} className="p-6 rounded-xl border border-gray-100 bg-gray-50 hover:shadow-sm transition-shadow">
-              <div className="text-3xl mb-4">{f.icon}</div>
-              <h3 className="text-lg font-semibold mb-2">{f.title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{f.body}</p>
-            </div>
+          {features.map((f) => (
+            <Card key={f.title} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="text-3xl mb-2">{f.icon}</div>
+                <CardTitle className="text-lg">{f.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-500 text-sm leading-relaxed">{f.body}</p>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </section>
+
+      <Separator />
 
       {/* How It Works */}
       <section id="how-it-works" className="py-24 px-6 bg-gray-50">
@@ -88,23 +110,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center mb-14">Three steps to a song</h2>
 
           <div className="flex flex-col gap-8">
-            {[
-              {
-                n: "1",
-                title: "Write your prompt",
-                desc: 'Type what you want: "a calm lofi beat for studying" or "upbeat pop song about summer".',
-              },
-              {
-                n: "2",
-                title: "Pick a style",
-                desc: "Choose a genre and vibe to guide the AI's interpretation of your prompt.",
-              },
-              {
-                n: "3",
-                title: "Listen and save",
-                desc: "Your song is ready in seconds. Save it to your library or share it with anyone.",
-              },
-            ].map((s) => (
+            {steps.map((s) => (
               <div key={s.n} className="flex gap-6 items-start">
                 <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-bold shrink-0">
                   {s.n}
@@ -135,10 +141,7 @@ export default function Home() {
           <p className="text-gray-300 text-lg mb-10 max-w-md">
             No instruments. No studio. Just type and listen.
           </p>
-          <a
-            href="/generation"
-            className="px-10 py-4 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-          >
+          <a href="/generation" className={cn(buttonVariants({ size: 'lg' }), 'bg-indigo-600 hover:bg-indigo-700 text-white px-10')}>
             Get Started — It&apos;s Free
           </a>
         </div>
@@ -149,6 +152,7 @@ export default function Home() {
         <span>Chithara © 2025</span>
         <a href="/api-docs" className="hover:text-gray-600 transition-colors">API Docs</a>
       </footer>
+
     </div>
   );
 }
