@@ -2,12 +2,15 @@ from rest_framework import serializers
 from .modules.User import User
 from .modules.Song import Song
 from .modules.GenerationHistory import GenerationHistory
+from .modules.GenerationQuota import GenerationQuota
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'google_id', 'email', 'name', 'daily_generation_count', 'last_generation_date']
-        read_only_fields = ['id', 'daily_generation_count', 'last_generation_date']
+        fields = ['id', 'google_id', 'email', 'username', 'first_name', 'last_name', 'date_joined']
+        read_only_fields = ['id', 'date_joined']
+
 
 class SongSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,8 +21,16 @@ class SongSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'share_token']
 
+
 class GenerationHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = GenerationHistory
-        fields = ['id', 'user', 'prompt_used', 'status', 'created_at', 'error_message']
+        fields = ['id', 'user', 'song', 'prompt_used', 'status', 'created_at', 'error_message']
         read_only_fields = ['id', 'created_at']
+
+
+class GenerationQuotaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GenerationQuota
+        fields = ['id', 'user', 'date', 'count']
+        read_only_fields = ['id']

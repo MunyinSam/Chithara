@@ -6,6 +6,7 @@ router = DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'songs', views.SongViewSet)
 router.register(r'history', views.GenerationHistoryViewSet)
+router.register(r'quota', views.GenerationQuotaViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -3,37 +3,41 @@
 import Link from 'next/link';
 
 export function NavBar() {
-	const linkClasses =
-		'text-black/80 transition-colors hover:text-black text-sm font-medium';
-	const navBarClass = 'w-full bg-transparent text-black';
-
 	return (
-		<nav className={navBarClass}>
-			<div className="flex h-14 items-center px-4 md:px-10">
-				<div className="flex flex-1 items-center">
-					<div className="flex-none flex items-center pr-4 md:pr-10">
-						<Link href="/" className="flex items-center space-x-2">
-							<span className="font-(family-name:--font-young-serif) text-xl text-black">
-								Chitara
-							</span>
-						</Link>
-					</div>
+		<nav
+			style={{
+				fontFamily: "'Times New Roman', Times, serif",
+				borderBottom: "2px solid #1a1008",
+				backgroundColor: "#f5f0e8",
+				color: "#1a1008",
+			}}
+			className="sticky top-0 z-50 px-8 py-4 flex items-center justify-between"
+		>
+			<Link href="/" className="text-2xl font-bold tracking-widest uppercase">
+				Chithara
+			</Link>
 
-					<nav className="hidden md:flex items-center space-x-6">
-						{/* <Link href="/decks/all" className={linkClasses}>
-							Your Library
-						</Link>
-						<Link href="/decks" className={linkClasses}>
-							Generate A Song
-						</Link> */}
-						<Link href="/api-docs" className={linkClasses}>
-							API Docs
-						</Link>
-						{/* <Link href="/decks/create" className={linkClasses}>
-							Add
-						</Link> */}
-					</nav>
-				</div>
+			<div className="hidden md:flex items-center gap-8 text-sm tracking-widest uppercase">
+				<Link href="/#features" className="hover:underline underline-offset-4">
+					Features
+				</Link>
+				<Link href="/#how-it-works" className="hover:underline underline-offset-4">
+					How It Works
+				</Link>
+				<Link href="/library" className="hover:underline underline-offset-4">
+					Library
+				</Link>
+				<Link
+					href="/generation"
+					style={{
+						backgroundColor: "#1a1008",
+						color: "#f5f0e8",
+						border: "2px solid #1a1008",
+					}}
+					className="px-5 py-2 transition-opacity hover:opacity-80"
+				>
+					Try Now
+				</Link>
 			</div>
 		</nav>
 	);
