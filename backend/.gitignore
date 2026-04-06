@@ -58,6 +58,11 @@ backend/__pycache__
 api/migrations/__pycache__
 api/__pycache__
 api/modules/__pycache__
+api/controllers/__pycache__
+api/services/__pycache__
 
 venv
 .venv
+
+# Generated audio files
+media/

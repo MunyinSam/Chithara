@@ -1,13 +1,19 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from . import views  # This works because views.py is in the same folder
+
+from .controllers.users import UserViewSet
+from .controllers.songs import SongViewSet
+from .controllers.generation import GenerationHistoryViewSet, generate_song, generation_callback
+from .controllers.quota import GenerationQuotaViewSet
 
 router = DefaultRouter()
-router.register(r'users', views.UserViewSet)
-router.register(r'songs', views.SongViewSet)
-router.register(r'history', views.GenerationHistoryViewSet)
-router.register(r'quota', views.GenerationQuotaViewSet)
+router.register(r'users', UserViewSet)
+router.register(r'songs', SongViewSet)
+router.register(r'history', GenerationHistoryViewSet)
+router.register(r'quota', GenerationQuotaViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('generate/', generate_song, name='generate-song'),
+    path('generate/callback/', generation_callback, name='generation-callback'),
 ]

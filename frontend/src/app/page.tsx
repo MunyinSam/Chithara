@@ -1,188 +1,117 @@
+import Image from 'next/image';
+
 export default function Home() {
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        fontFamily: "'Times New Roman', Times, serif",
-        backgroundColor: "#f5f0e8",
-        color: "#1a1008",
-      }}
-    >
+    <div className="min-h-screen bg-white text-gray-900">
+
       {/* Hero */}
-      <section
-        className="flex flex-col items-center justify-center text-center px-6 py-32"
-        style={{ borderBottom: "2px solid #1a1008" }}
-      >
-        <div className="flex items-center gap-4 mb-10 w-full max-w-xl">
-          <div style={{ flex: 1, height: "2px", backgroundColor: "#1a1008" }} />
-          <span className="text-xs tracking-[0.4em] uppercase">Est. 2025</span>
-          <div style={{ flex: 1, height: "2px", backgroundColor: "#1a1008" }} />
-        </div>
+      <section className="relative flex flex-col items-center justify-center text-center px-6 py-40 overflow-hidden">
+        {/* Background image */}
+        <Image
+          src="/images/hero.jpg"
+          alt="Music studio"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/65" />
 
-        <h1
-          className="text-7xl font-bold leading-tight mb-6"
-          style={{ letterSpacing: "-0.02em" }}
-        >
-          Music, Born
-          <br />
-          From Words.
-        </h1>
-
-        <p
-          className="text-xl max-w-lg mb-12 leading-relaxed"
-          style={{ color: "#4a3b2a" }}
-        >
-          Describe a feeling. A moment. A memory. Chithara transforms your words
-          into original music — instantly.
-        </p>
-
-        <div className="flex gap-4 flex-wrap justify-center">
-          <a
-            href="/generation"
-            style={{
-              backgroundColor: "#1a1008",
-              color: "#f5f0e8",
-              border: "2px solid #1a1008",
-            }}
-            className="px-8 py-3 text-base tracking-widest uppercase hover:opacity-80 transition-opacity"
-          >
-            Generate a Song
-          </a>
-          <a
-            href="#how-it-works"
-            style={{
-              backgroundColor: "transparent",
-              color: "#1a1008",
-              border: "2px solid #1a1008",
-            }}
-            className="px-8 py-3 text-base tracking-widest uppercase hover:bg-stone-200 transition-colors"
-          >
-            Learn More
-          </a>
-        </div>
-
-        <div className="flex items-center gap-4 mt-16 w-full max-w-xl">
-          <div style={{ flex: 1, height: "1px", backgroundColor: "#1a1008" }} />
-          <span style={{ fontSize: "1.5rem" }}>♩ ♪ ♫ ♬</span>
-          <div style={{ flex: 1, height: "1px", backgroundColor: "#1a1008" }} />
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center">
+          <span className="text-sm font-medium text-indigo-400 mb-4 tracking-wide uppercase">
+            AI Music Generation
+          </span>
+          <h1 className="text-5xl md:text-7xl font-bold leading-tight tracking-tight text-white mb-6">
+            Turn your words<br />into music.
+          </h1>
+          <p className="text-xl text-gray-300 max-w-xl mb-10 leading-relaxed">
+            Describe a feeling, a moment, or a vibe. Chithara uses AI to
+            generate original songs from your prompts — instantly.
+          </p>
+          <div className="flex gap-4 flex-wrap justify-center">
+            <a
+              href="/generation"
+              className="px-8 py-3 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+            >
+              Generate a Song
+            </a>
+            <a
+              href="#how-it-works"
+              className="px-8 py-3 bg-white/10 text-white rounded-lg text-sm font-medium border border-white/20 hover:bg-white/20 transition-colors backdrop-blur-sm"
+            >
+              Learn More
+            </a>
+          </div>
         </div>
       </section>
 
       {/* Features */}
-      <section
-        id="features"
-        className="px-8 py-24"
-        style={{ borderBottom: "2px solid #1a1008" }}
-      >
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-xs tracking-[0.5em] uppercase mb-2 text-center">
-            What We Offer
-          </h2>
-          <h3 className="text-4xl font-bold text-center mb-16">
-            Everything You Need
-          </h3>
+      <section id="features" className="px-6 py-24 max-w-5xl mx-auto">
+        <p className="text-sm font-medium text-indigo-600 text-center mb-3">Features</p>
+        <h2 className="text-3xl font-bold text-center mb-4">Everything you need</h2>
+        <p className="text-gray-500 text-center max-w-lg mx-auto mb-14">
+          From generation to your personal library — all in one place.
+        </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-            {[
-              {
-                symbol: "I.",
-                title: "Text to Music",
-                body: "Write a prompt in plain English. Our AI composes original audio that matches your vision — genre, mood, and all.",
-              },
-              {
-                symbol: "II.",
-                title: "Your Library",
-                body: "Every song you generate is saved to your personal library. Revisit, share, or keep them private — your choice.",
-              },
-              {
-                symbol: "III.",
-                title: "Generation History",
-                body: "Track every prompt you've tried. Iterate on your ideas and see how your music has evolved over time.",
-              },
-            ].map((f, i) => (
-              <div
-                key={i}
-                className="p-8"
-                style={{
-                  borderLeft: i === 0 ? "2px solid #1a1008" : "none",
-                  borderRight: "2px solid #1a1008",
-                  borderTop: "2px solid #1a1008",
-                  borderBottom: "2px solid #1a1008",
-                }}
-              >
-                <div
-                  className="text-4xl font-bold mb-4"
-                  style={{ color: "#8b6f4e" }}
-                >
-                  {f.symbol}
-                </div>
-                <h4 className="text-xl font-bold mb-3 tracking-wide">
-                  {f.title}
-                </h4>
-                <p className="leading-relaxed" style={{ color: "#4a3b2a" }}>
-                  {f.body}
-                </p>
-              </div>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            {
+              icon: "🎵",
+              title: "Text to Music",
+              body: "Describe any song in plain English. Our AI handles the rest — genre, mood, tempo, and more.",
+            },
+            {
+              icon: "📚",
+              title: "Your Library",
+              body: "Every generated song is saved to your library. Keep them private or share them with a link.",
+            },
+            {
+              icon: "🕓",
+              title: "Generation History",
+              body: "See every prompt you've tried. Revisit past generations and iterate on your ideas.",
+            },
+          ].map((f) => (
+            <div key={f.title} className="p-6 rounded-xl border border-gray-100 bg-gray-50 hover:shadow-sm transition-shadow">
+              <div className="text-3xl mb-4">{f.icon}</div>
+              <h3 className="text-lg font-semibold mb-2">{f.title}</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">{f.body}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      <section
-        id="how-it-works"
-        className="px-8 py-24"
-        style={{
-          backgroundColor: "#1a1008",
-          color: "#f5f0e8",
-          borderBottom: "2px solid #1a1008",
-        }}
-      >
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-xs tracking-[0.5em] uppercase mb-2 opacity-60">
-            The Process
-          </h2>
-          <h3 className="text-4xl font-bold mb-16">Three Steps to a Song</h3>
+      {/* How It Works */}
+      <section id="how-it-works" className="py-24 px-6 bg-gray-50">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-sm font-medium text-indigo-600 text-center mb-3">How It Works</p>
+          <h2 className="text-3xl font-bold text-center mb-14">Three steps to a song</h2>
 
-          <div className="flex flex-col gap-0">
+          <div className="flex flex-col gap-8">
             {[
               {
-                step: "01",
-                title: "Write Your Prompt",
-                desc: 'Type a description like "a melancholic jazz piece for a rainy evening" or "upbeat folk with acoustic guitar".',
+                n: "1",
+                title: "Write your prompt",
+                desc: 'Type what you want: "a calm lofi beat for studying" or "upbeat pop song about summer".',
               },
               {
-                step: "02",
-                title: "Choose Your Style",
-                desc: "Select a genre and a vibe to refine the AI's interpretation of your prompt.",
+                n: "2",
+                title: "Pick a style",
+                desc: "Choose a genre and vibe to guide the AI's interpretation of your prompt.",
               },
               {
-                step: "03",
-                title: "Listen & Save",
-                desc: "Your song is generated in seconds. Listen instantly, save it to your library, or share it with a link.",
+                n: "3",
+                title: "Listen and save",
+                desc: "Your song is ready in seconds. Save it to your library or share it with anyone.",
               },
-            ].map((s, i) => (
-              <div
-                key={i}
-                className="flex gap-8 items-start p-8 text-left"
-                style={{
-                  borderBottom:
-                    i < 2 ? "1px solid rgba(245,240,232,0.2)" : "none",
-                }}
-              >
-                <span
-                  className="text-5xl font-bold shrink-0"
-                  style={{ color: "rgba(245,240,232,0.2)" }}
-                >
-                  {s.step}
-                </span>
+            ].map((s) => (
+              <div key={s.n} className="flex gap-6 items-start">
+                <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-bold shrink-0">
+                  {s.n}
+                </div>
                 <div>
-                  <h4 className="text-xl font-bold mb-2">{s.title}</h4>
-                  <p
-                    style={{ color: "rgba(245,240,232,0.7)" }}
-                    className="leading-relaxed"
-                  >
-                    {s.desc}
-                  </p>
+                  <h4 className="text-lg font-semibold mb-1">{s.title}</h4>
+                  <p className="text-gray-500 leading-relaxed">{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -190,49 +119,35 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="px-8 py-28 text-center">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex justify-center gap-3 text-3xl mb-8">
-            ♩ ♪ ♫ ♬
-          </div>
-          <h2 className="text-5xl font-bold mb-6 leading-tight">
-            Your Next Favourite Song
-            <br />
-            Hasn&apos;t Been Written Yet.
+      {/* CTA */}
+      <section className="relative flex flex-col items-center text-center px-6 py-32 overflow-hidden">
+        <Image
+          src="/images/hero.jpg"
+          alt="Music studio"
+          fill
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-black/70" />
+        <div className="relative z-10 flex flex-col items-center">
+          <h2 className="text-4xl md:text-5xl font-bold leading-tight mb-6 text-white">
+            Ready to make your song?
           </h2>
-          <p
-            className="text-lg mb-10 leading-relaxed"
-            style={{ color: "#4a3b2a" }}
-          >
-            Be the one to write it. No instruments. No studio. Just your words.
+          <p className="text-gray-300 text-lg mb-10 max-w-md">
+            No instruments. No studio. Just type and listen.
           </p>
           <a
             href="/generation"
-            style={{
-              backgroundColor: "#1a1008",
-              color: "#f5f0e8",
-              border: "2px solid #1a1008",
-            }}
-            className="inline-block px-10 py-4 text-base tracking-widest uppercase hover:opacity-80 transition-opacity"
+            className="px-10 py-4 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
           >
-            Start Generating — It&apos;s Free
+            Get Started — It&apos;s Free
           </a>
         </div>
       </section>
 
       {/* Footer */}
-      <footer
-        className="px-8 py-8 flex items-center justify-between text-sm tracking-widest uppercase"
-        style={{
-          borderTop: "2px solid #1a1008",
-          color: "#4a3b2a",
-        }}
-      >
+      <footer className="px-8 py-6 border-t border-gray-100 flex items-center justify-between text-sm text-gray-400">
         <span>Chithara © 2025</span>
-        <span>♫ All rights reserved</span>
-        <a href="/api-docs" className="hover:underline underline-offset-4">
-          API Docs
-        </a>
+        <a href="/api-docs" className="hover:text-gray-600 transition-colors">API Docs</a>
       </footer>
     </div>
   );

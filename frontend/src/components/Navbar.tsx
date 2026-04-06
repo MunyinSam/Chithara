@@ -4,40 +4,29 @@ import Link from 'next/link';
 
 export function NavBar() {
 	return (
-		<nav
-			style={{
-				fontFamily: "'Times New Roman', Times, serif",
-				borderBottom: "2px solid #1a1008",
-				backgroundColor: "#f5f0e8",
-				color: "#1a1008",
-			}}
-			className="sticky top-0 z-50 px-8 py-4 flex items-center justify-between"
-		>
-			<Link href="/" className="text-2xl font-bold tracking-widest uppercase">
-				Chithara
-			</Link>
+		<nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
+			<div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+				<Link href="/" className="text-lg font-bold text-gray-900 tracking-tight">
+					Chithara
+				</Link>
 
-			<div className="hidden md:flex items-center gap-8 text-sm tracking-widest uppercase">
-				<Link href="/#features" className="hover:underline underline-offset-4">
-					Features
-				</Link>
-				<Link href="/#how-it-works" className="hover:underline underline-offset-4">
-					How It Works
-				</Link>
-				<Link href="/library" className="hover:underline underline-offset-4">
-					Library
-				</Link>
-				<Link
-					href="/generation"
-					style={{
-						backgroundColor: "#1a1008",
-						color: "#f5f0e8",
-						border: "2px solid #1a1008",
-					}}
-					className="px-5 py-2 transition-opacity hover:opacity-80"
-				>
-					Try Now
-				</Link>
+				<div className="hidden md:flex items-center gap-8">
+					<Link href="/#features" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
+						Features
+					</Link>
+					<Link href="/#how-it-works" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
+						How It Works
+					</Link>
+					<Link href="/library" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
+						Library
+					</Link>
+					<Link
+						href="/generation"
+						className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+					>
+						Try Now
+					</Link>
+				</div>
 			</div>
 		</nav>
 	);
