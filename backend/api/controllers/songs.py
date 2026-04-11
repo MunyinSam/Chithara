@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
@@ -9,8 +10,15 @@ from ..serializer import SongSerializer
 
 @extend_schema(tags=['Songs'])
 class SongViewSet(viewsets.ModelViewSet):
-    queryset = Song.objects.all()
     serializer_class = SongSerializer
+
+    def get_queryset(self):
+        return Song.objects.filter(owner=self.request.user)
+
+    def get_permissions(self):
+        if self.action == 'public':
+            return [AllowAny()]
+        return super().get_permissions()
 
     @extend_schema(
         tags=['Songs'],

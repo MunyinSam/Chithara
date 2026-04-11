@@ -3,10 +3,10 @@ from django.core.files.base import ContentFile
 from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from ..modules.User import User
 from ..modules.Song import Song
 from ..modules.GenerationHistory import GenerationHistory
 from ..serializer import GenerationHistorySerializer
@@ -81,8 +81,10 @@ def _sync_from_suno(history):
 
 @extend_schema(tags=['Generation History'])
 class GenerationHistoryViewSet(viewsets.ModelViewSet):
-    queryset = GenerationHistory.objects.all()
     serializer_class = GenerationHistorySerializer
+
+    def get_queryset(self):
+        return GenerationHistory.objects.filter(user=self.request.user)
 
     def retrieve(self, request, *args, **kwargs):
         """
@@ -135,8 +137,7 @@ def generate_song(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # TODO: swap for request.user once auth is set up
-    user = User.objects.first()
+    user = request.user
 
     history = GenerationHistory.objects.create(
         user=user,
@@ -164,6 +165,7 @@ def generate_song(request):
 @extend_schema(tags=['Generation'], exclude=True)
 @csrf_exempt
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def generation_callback(request):
     """
     Called by Suno when a generation job completes or fails.

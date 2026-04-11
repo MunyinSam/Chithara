@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent } from '@/src/components/ui/card';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/src/components/ui/button';
@@ -120,24 +121,37 @@ function SongCard({
 }
 
 export default function LibraryPage() {
+  const { data: session, status: sessionStatus } = useSession();
   const [songs, setSongs]           = useState<Song[]>([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState('');
   const [filter, setFilter]         = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL');
   const [activeSong, setActiveSong] = useState<Song | null>(null);
 
+  const authHeaders = (): HeadersInit => ({
+    'Content-Type': 'application/json',
+    ...(session?.backendToken ? { Authorization: `Bearer ${session.backendToken}` } : {}),
+  });
+
   useEffect(() => {
-    fetch(`${API}/songs/`)
-      .then((r) => r.json())
-      .then((data) => { setSongs(data); setLoading(false); })
+    if (sessionStatus === 'loading' || !session?.backendToken) return;
+    const token = session.backendToken;
+    fetch(`${API}/songs/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((data) => { setSongs(Array.isArray(data) ? data : (data.results ?? [])); setLoading(false); })
       .catch(() => { setError('Failed to load songs.'); setLoading(false); });
-  }, []);
+  }, [session?.backendToken, sessionStatus]);
 
   const togglePrivacy = async (song: Song) => {
     const next = song.privacy_status === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
     const res = await fetch(`${API}/songs/${song.id}/`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ privacy_status: next }),
     });
     if (res.ok) {
@@ -191,10 +205,16 @@ export default function LibraryPage() {
           </div>
 
           {/* States */}
-          {loading && (
+          {(loading || sessionStatus === 'loading') && (
             <div className="flex justify-center py-20">
               <div className="size-8 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin" />
             </div>
+          )}
+
+          {sessionStatus !== 'loading' && !session?.backendToken && (
+            <p className="text-center text-red-500 py-10">
+              Session expired — please sign out and sign back in.
+            </p>
           )}
 
           {error && (

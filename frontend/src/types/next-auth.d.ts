@@ -14,14 +14,17 @@ interface BackendUser {
 declare module 'next-auth' {
   interface Session {
     backendUser: BackendUser;
+    backendToken?: string;
   }
   interface User {
     backendUser?: BackendUser;
+    backendToken?: string;
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
     backendUser?: BackendUser;
+    backendToken?: string;
   }
 }

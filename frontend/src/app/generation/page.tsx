@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card';
 import { Textarea } from '@/src/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -36,6 +37,10 @@ interface HistoryEntry {
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api';
 
 export default function GenerationPage() {
+  const { data: session } = useSession();
+  const tokenRef = useRef<string | undefined>(undefined);
+  tokenRef.current = session?.backendToken;
+
   const [prompt, setPrompt]           = useState('');
   const [style, setStyle]             = useState('');
   const [title, setTitle]             = useState('');
@@ -49,11 +54,18 @@ export default function GenerationPage() {
     if (pollRef.current) clearInterval(pollRef.current);
   };
 
+  const authHeaders = (): HeadersInit => ({
+    'Content-Type': 'application/json',
+    ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}),
+  });
+
   const pollHistory = (historyId: number) => {
     setStatus('polling');
     pollRef.current = setInterval(async () => {
       try {
-        const res = await fetch(`${API}/history/${historyId}/`);
+        const res = await fetch(`${API}/history/${historyId}/`, {
+          headers: authHeaders(),
+        });
         const data: HistoryEntry = await res.json();
         if (data.status === 'COMPLETED') {
           stopPolling();
@@ -83,7 +95,7 @@ export default function GenerationPage() {
     try {
       const res = await fetch(`${API}/generate/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ prompt, style, title, instrumental }),
       });
 

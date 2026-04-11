@@ -1,7 +1,9 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, action
+from rest_framework.decorators import api_view, action, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from ..modules.User import User
 from ..modules.Song import Song
@@ -49,6 +51,7 @@ class UserViewSet(viewsets.ModelViewSet):
     responses={200: UserSerializer, 201: UserSerializer},
 )
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def google_auth(request):
     google_id = request.data.get('google_id', '').strip()
     email = request.data.get('email', '').strip()
@@ -75,5 +78,12 @@ def google_auth(request):
         },
     )
 
-    serializer = UserSerializer(user)
-    return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+    refresh = RefreshToken.for_user(user)
+    return Response(
+        {
+            **UserSerializer(user).data,
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+        },
+        status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+    )

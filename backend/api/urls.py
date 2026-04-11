@@ -8,8 +8,8 @@ from .controllers.quota import GenerationQuotaViewSet
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
-router.register(r'songs', SongViewSet)
-router.register(r'history', GenerationHistoryViewSet)
+router.register(r'songs', SongViewSet, basename='song')
+router.register(r'history', GenerationHistoryViewSet, basename='generationhistory')
 router.register(r'quota', GenerationQuotaViewSet)
 
 urlpatterns = [

@@ -30,9 +30,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!res.ok) return false;
 
-        const backendUser = await res.json();
-        // Attach backend user to the NextAuth user object for use in jwt callback
+        const { access, ...backendUser } = await res.json();
+        // Attach backend user + JWT to the NextAuth user object for use in jwt callback
         user.backendUser = backendUser;
+        user.backendToken = access;
         return true;
       } catch {
         return false;
@@ -40,17 +41,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
 
     async jwt({ token, user }) {
-      // On first sign-in, user is populated — persist backendUser into the token
+      // On first sign-in, user is populated — persist backendUser and token
       if (user?.backendUser) {
         token.backendUser = user.backendUser;
+        token.backendToken = user.backendToken;
       }
       return token;
     },
 
     async session({ session, token }) {
-      // backendUser accessible via useSession()
+      // backendUser and backendToken accessible via useSession()
       if (token.backendUser) {
         session.backendUser = token.backendUser;
+        session.backendToken = token.backendToken;
       }
       return session;
     },

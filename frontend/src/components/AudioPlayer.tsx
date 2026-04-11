@@ -18,7 +18,7 @@ interface AudioPlayerProps {
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
 function formatTime(seconds: number): string {
-  if (isNaN(seconds)) return '0:00';
+  if (!isFinite(seconds) || isNaN(seconds)) return '0:00';
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, '0')}`;
@@ -26,25 +26,25 @@ function formatTime(seconds: number): string {
 
 export default function AudioPlayer({ song, onClose }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const progressRef = useRef<HTMLDivElement>(null);
 
-  const [playing, setPlaying]       = useState(false);
+  const [playing, setPlaying]         = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration]     = useState(0);
-  const [speed, setSpeed]           = useState(1);
-  const [volume, setVolume]         = useState(1);
-  const [muted, setMuted]           = useState(false);
-  const [visible, setVisible]       = useState(false);
+  const [duration, setDuration]       = useState(0);
+  const [speed, setSpeed]             = useState(1);
+  const [volume, setVolume]           = useState(1);
+  const [muted, setMuted]             = useState(false);
+  const [visible, setVisible]         = useState(false);
 
-  // Animate in
+  // Animate in + reset state when song changes — all setState in rAF callbacks
   useEffect(() => {
-    if (song) {
+    if (!song) return;
+    requestAnimationFrame(() => {
       setVisible(false);
-      requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
       setPlaying(false);
       setCurrentTime(0);
       setDuration(0);
-    }
+      requestAnimationFrame(() => setVisible(true));
+    });
   }, [song]);
 
   // Auto-play when song loads
@@ -59,31 +59,23 @@ export default function AudioPlayer({ song, onClose }: AudioPlayerProps) {
     const audio = audioRef.current;
     if (!audio) return;
     if (playing) { audio.pause(); setPlaying(false); }
-    else          { audio.play(); setPlaying(true); }
+    else          { audio.play();  setPlaying(true);  }
   };
 
   const skip = (delta: number) => {
     const audio = audioRef.current;
     if (!audio) return;
-    const dur = audio.duration;
-    if (!isFinite(dur)) return;
-    audio.currentTime = Math.max(0, Math.min(dur, audio.currentTime + delta));
+    audio.currentTime = Math.max(0, audio.currentTime + delta);
   };
 
-  const seek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const bar = progressRef.current;
-    const audio = audioRef.current;
-    if (!bar || !audio) return;
-    const dur = audio.duration;
-    if (!isFinite(dur)) return;
-    const rect = bar.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    audio.currentTime = ratio * dur;
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTime = parseFloat(e.target.value);
+    setCurrentTime(newTime);
+    if (audioRef.current) audioRef.current.currentTime = newTime;
   };
 
   const setPlaybackSpeed = (s: number) => {
-    const audio = audioRef.current;
-    if (audio) audio.playbackRate = s;
+    if (audioRef.current) audioRef.current.playbackRate = s;
     setSpeed(s);
   };
 
@@ -97,9 +89,8 @@ export default function AudioPlayer({ song, onClose }: AudioPlayerProps) {
   const toggleMute = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    const next = !muted;
-    audio.muted = next;
-    setMuted(next);
+    audio.muted = !muted;
+    setMuted(!muted);
   };
 
   const handleClose = () => {
@@ -119,25 +110,31 @@ export default function AudioPlayer({ song, onClose }: AudioPlayerProps) {
         visible ? 'translate-y-0' : 'translate-y-full'
       )}
     >
-      {/* Backdrop blur strip */}
       <div className="bg-white/90 backdrop-blur-xl border-t border-gray-200 shadow-2xl px-6 py-4">
 
-        {/* Progress bar — tall hit area, inner elements non-interactive */}
-        <div
-          ref={progressRef}
-          onClick={seek}
-          className="w-full h-4 flex items-center cursor-pointer mb-2 group"
-        >
+        {/* Seek bar: invisible range input over visual track */}
+        <div className="relative w-full h-4 flex items-center mb-2 group">
+          {/* Visual track */}
           <div className="w-full h-1.5 bg-gray-200 rounded-full relative pointer-events-none">
             <div
               className="h-full bg-indigo-600 rounded-full"
               style={{ width: `${progress}%` }}
             />
             <div
-              className="absolute top-1/2 -translate-y-1/2 size-3 bg-indigo-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-1/2 size-3 bg-indigo-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
               style={{ left: `${progress}%`, transform: 'translate(-50%, -50%)' }}
             />
           </div>
+          {/* Transparent range input handles all mouse/touch interaction */}
+          <input
+            type="range"
+            min={0}
+            max={duration || 1}
+            step={0.1}
+            value={currentTime}
+            onChange={handleSeek}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
         </div>
 
         <div className="flex items-center gap-6">
@@ -253,8 +250,10 @@ export default function AudioPlayer({ song, onClose }: AudioPlayerProps) {
       <audio
         ref={audioRef}
         src={song.audio_file}
+        preload="auto"
         onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime ?? 0)}
         onLoadedMetadata={() => setDuration(audioRef.current?.duration ?? 0)}
+        onDurationChange={() => setDuration(audioRef.current?.duration ?? 0)}
         onEnded={() => setPlaying(false)}
       />
     </div>
