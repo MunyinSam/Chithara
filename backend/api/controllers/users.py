@@ -1,9 +1,11 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 
 from ..modules.User import User
+from ..modules.Song import Song
+from ..modules.GenerationHistory import GenerationHistory
 from ..serializer import UserSerializer
 
 
@@ -11,6 +13,26 @@ from ..serializer import UserSerializer
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    @extend_schema(
+        tags=['Users'],
+        responses={200: {
+            'type': 'object',
+            'properties': {
+                'total_songs':       {'type': 'integer'},
+                'public_songs':      {'type': 'integer'},
+                'total_generations': {'type': 'integer'},
+            },
+        }},
+    )
+    @action(detail=True, methods=['get'])
+    def stats(self, request, pk=None):
+        user = self.get_object()
+        return Response({
+            'total_songs':       Song.objects.filter(owner=user).count(),
+            'public_songs':      Song.objects.filter(owner=user, privacy_status='PUBLIC').count(),
+            'total_generations': GenerationHistory.objects.filter(user=user).count(),
+        })
 
 
 @extend_schema(

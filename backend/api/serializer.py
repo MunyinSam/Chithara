@@ -23,6 +23,8 @@ class SongSerializer(serializers.ModelSerializer):
 
 
 class GenerationHistorySerializer(serializers.ModelSerializer):
+    song = SongSerializer(read_only=True)
+
     class Meta:
         model = GenerationHistory
         fields = ['id', 'user', 'song', 'suno_task_id', 'prompt_used', 'status', 'created_at', 'error_message']

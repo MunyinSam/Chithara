@@ -1,7 +1,7 @@
 """
 Suno API client for api.sunoapi.org
-  POST /api/v1/generate  → returns { taskId }
-  Suno calls our callBackUrl when done with the finished clip data
+  POST /api/v1/generate        → returns { taskId }
+  GET  /api/v1/query?taskId=X  → returns task status + clips
 """
 
 import requests
@@ -34,6 +34,7 @@ def submit_generation(prompt: str, style: str, title: str, instrumental: bool = 
         headers=HEADERS,
         timeout=30,
     )
+    print(f'[suno] POST /generate status={response.status_code} body={response.text}')
     response.raise_for_status()
 
     data = response.json()
@@ -41,3 +42,19 @@ def submit_generation(prompt: str, style: str, title: str, instrumental: bool = 
         raise RuntimeError(f"Suno error: {data.get('msg', 'Unknown error')}")
 
     return data['data']['taskId']
+
+
+def fetch_task_result(task_id: str) -> dict:
+    """
+    Poll Suno for the current status of a task.
+    Endpoint: GET /api/v1/generate/record-info?taskId=...
+    Returns the raw response dict from Suno.
+    """
+    response = requests.get(
+        f'{settings.SUNO_API_BASE_URL}/generate/record-info',
+        params={'taskId': task_id},
+        headers=HEADERS,
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()

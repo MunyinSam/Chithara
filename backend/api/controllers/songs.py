@@ -1,4 +1,6 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
 from ..modules.Song import Song
@@ -9,3 +11,16 @@ from ..serializer import SongSerializer
 class SongViewSet(viewsets.ModelViewSet):
     queryset = Song.objects.all()
     serializer_class = SongSerializer
+
+    @extend_schema(
+        tags=['Songs'],
+        responses={200: SongSerializer, 404: None},
+        description='Fetch a public song by its share token. No authentication required.',
+    )
+    @action(detail=False, methods=['get'], url_path=r'public/(?P<token>[^/.]+)')
+    def public(self, request, token=None):
+        try:
+            song = Song.objects.get(share_token=token, privacy_status='PUBLIC')
+        except Song.DoesNotExist:
+            return Response({'error': 'Song not found or not public'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(SongSerializer(song, context={'request': request}).data)
