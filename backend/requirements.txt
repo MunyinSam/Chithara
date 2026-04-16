@@ -5,3 +5,4 @@ drf-spectacular
 requests
 python-dotenv
 djangorestframework-simplejwt
+gunicorn

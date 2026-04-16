@@ -1,7 +1,9 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api';
+// BACKEND_URL is used server-side (e.g. within Docker) where the public URL is unreachable.
+// Falls back to NEXT_PUBLIC_API_BASE_URL for local dev.
+const API_BASE = process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
