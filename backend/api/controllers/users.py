@@ -1,7 +1,7 @@
 from drf_spectacular.utils import extend_schema
-from ratelimit.decorators import ratelimit
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, action, permission_classes
+from rest_framework.decorators import api_view, action, permission_classes, throttle_classes
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -53,14 +53,8 @@ class UserViewSet(viewsets.ModelViewSet):
 )
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@ratelimit(key='ip', rate='20/h', method='POST')
+@throttle_classes([AnonRateThrottle])
 def google_auth(request):
-    if getattr(request, 'limited', False):
-        return Response(
-            {'error': 'Too many requests. Please slow down.'},
-            status=status.HTTP_429_TOO_MANY_REQUESTS,
-        )
-
     serializer = GoogleAuthSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

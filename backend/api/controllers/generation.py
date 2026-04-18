@@ -5,9 +5,9 @@ from django.core.files.base import ContentFile
 from django.db.models import F
 from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema
-from ratelimit.decorators import ratelimit
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
+from rest_framework.throttling import UserRateThrottle
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -127,18 +127,13 @@ class GenerationHistoryViewSet(viewsets.ModelViewSet):
     }}},
 )
 @api_view(['POST'])
-@ratelimit(key='user', rate='20/h', method='POST')
+@throttle_classes([UserRateThrottle])
 def generate_song(request):
     """
     Submit a song generation request to Suno.
     Returns 202 immediately — poll GET /api/history/{id}/ for status.
     Status flow: PENDING → PROCESSING → COMPLETED | FAILED
     """
-    if getattr(request, 'limited', False):
-        return Response(
-            {'error': 'Too many requests. Please slow down.'},
-            status=status.HTTP_429_TOO_MANY_REQUESTS,
-        )
 
     serializer = GenerateSongSerializer(data=request.data)
     if not serializer.is_valid():
