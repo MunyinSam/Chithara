@@ -7,3 +7,4 @@ python-dotenv
 djangorestframework-simplejwt
 gunicorn
 psycopg2-binary
+django-ratelimit

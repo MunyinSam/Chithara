@@ -183,3 +183,5 @@ REST_FRAMEWORK = {
 SUNO_API_KEY = os.getenv('SUNO_API_KEY', '')
 SUNO_API_BASE_URL = 'https://api.sunoapi.org/api/v1'
 SUNO_CALLBACK_URL = os.getenv('SUNO_CALLBACK_URL', 'http://localhost:8000/api/generate/callback/')
+
+DAILY_GENERATION_LIMIT = int(os.getenv('DAILY_GENERATION_LIMIT', '10'))
