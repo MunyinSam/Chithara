@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
 	turbopack: {},
 	output: 'standalone',
 	typescript: {
-		ignoreBuildErrors: true,
+		ignoreBuildErrors: false,
 	},
 	eslint: {
 		ignoreDuringBuilds: true,

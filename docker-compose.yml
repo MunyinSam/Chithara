@@ -1,4 +1,21 @@
 services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-chithara}
+      POSTGRES_USER: ${DB_USER:-chithara}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-chithara}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-chithara} -d ${DB_NAME:-chithara}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   backend:
     build: ./backend
     ports:
@@ -10,7 +27,15 @@ services:
       DEBUG: "False"
       SUNO_API_KEY: ${SUNO_API_KEY}
       SUNO_CALLBACK_URL: ${SUNO_CALLBACK_URL:-http://localhost:8000/api/generate/callback/}
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
+      DB_NAME: ${DB_NAME:-chithara}
+      DB_USER: ${DB_USER:-chithara}
+      DB_PASSWORD: ${DB_PASSWORD:-chithara}
+      DB_HOST: db
+      DB_PORT: 5432
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build:
@@ -18,18 +43,21 @@ services:
       args:
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000/api}
         NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
-        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+        AUTH_SECRET: ${AUTH_SECRET}
+        NEXT_PUBLIC_API_SCHEMA_URL: ${NEXT_PUBLIC_API_SCHEMA_URL:-http://localhost:8000/api/schema/}
     ports:
       - "3000:3000"
     environment:
       # Server-side URL — frontend container reaches backend via Docker network
       BACKEND_URL: http://backend:8000/api
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      AUTH_SECRET: ${AUTH_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      AUTH_TRUST_HOST: "true"
     depends_on:
       - backend
 
 volumes:
   media:
+  postgres_data:

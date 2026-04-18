@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from .controllers.users import UserViewSet, google_auth
 from .controllers.songs import SongViewSet
-from .controllers.generation import GenerationHistoryViewSet, generate_song, generation_callback
+from .controllers.generation import GenerationHistoryViewSet, generate_song, generation_callback, get_credits
 from .controllers.quota import GenerationQuotaViewSet
 
 router = DefaultRouter()
@@ -17,4 +17,5 @@ urlpatterns = [
     path('auth/google/', google_auth, name='google-auth'),
     path('generate/', generate_song, name='generate-song'),
     path('generate/callback/', generation_callback, name='generation-callback'),
+    path('generate/credits/', get_credits, name='generate-credits'),
 ]

@@ -44,6 +44,23 @@ def submit_generation(prompt: str, style: str, title: str, instrumental: bool = 
     return data['data']['taskId']
 
 
+def fetch_credits() -> int:
+    """
+    Returns the remaining generation credits for the configured API key.
+    Endpoint: GET /api/v1/generate/credit
+    """
+    response = requests.get(
+        f'{settings.SUNO_API_BASE_URL}/generate/credit',
+        headers=HEADERS,
+        timeout=10,
+    )
+    response.raise_for_status()
+    data = response.json()
+    if data.get('code') != 200:
+        raise RuntimeError(f"Suno error: {data.get('msg', 'Unknown error')}")
+    return data['data']
+
+
 def fetch_task_result(task_id: str) -> dict:
     """
     Poll Suno for the current status of a task.

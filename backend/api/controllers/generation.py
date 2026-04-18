@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from ..modules.Song import Song
 from ..modules.GenerationHistory import GenerationHistory
 from ..serializer import GenerationHistorySerializer
-from ..services.suno import submit_generation, fetch_task_result
+from ..services.suno import submit_generation, fetch_task_result, fetch_credits
 
 
 def _save_song_from_clip(history, clip, task_id):
@@ -160,6 +160,22 @@ def generate_song(request):
         {'history_id': history.id, 'task_id': task_id, 'status': 'PROCESSING'},
         status=status.HTTP_202_ACCEPTED,
     )
+
+
+@extend_schema(
+    tags=['Generation'],
+    responses={200: {'type': 'object', 'properties': {
+        'credits': {'type': 'integer'},
+    }}},
+)
+@api_view(['GET'])
+def get_credits(request):
+    """Returns the remaining Suno API credits for this account."""
+    try:
+        credits = fetch_credits()
+        return Response({'credits': credits})
+    except Exception as exc:
+        return Response({'error': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
 
 
 @extend_schema(tags=['Generation'], exclude=True)

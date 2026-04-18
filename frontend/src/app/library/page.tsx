@@ -127,6 +127,7 @@ export default function LibraryPage() {
   const [error, setError]           = useState('');
   const [filter, setFilter]         = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL');
   const [activeSong, setActiveSong] = useState<Song | null>(null);
+  const [credits, setCredits]       = useState<number | null>(null);
 
   const authHeaders = (): HeadersInit => ({
     'Content-Type': 'application/json',
@@ -136,6 +137,7 @@ export default function LibraryPage() {
   useEffect(() => {
     if (sessionStatus === 'loading' || !session?.backendToken) return;
     const token = session.backendToken;
+
     fetch(`${API}/songs/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -145,6 +147,13 @@ export default function LibraryPage() {
       })
       .then((data) => { setSongs(Array.isArray(data) ? data : (data.results ?? [])); setLoading(false); })
       .catch(() => { setError('Failed to load songs.'); setLoading(false); });
+
+    fetch(`${API}/generate/credits/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data?.credits != null) setCredits(data.credits); })
+      .catch(() => {});
   }, [session?.backendToken, sessionStatus]);
 
   const togglePrivacy = async (song: Song) => {
@@ -176,7 +185,15 @@ export default function LibraryPage() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Your Library</h1>
-              <p className="text-gray-500 mt-1">{songs.length} song{songs.length !== 1 ? 's' : ''} generated</p>
+              <div className="flex items-center gap-3 mt-1">
+                <p className="text-gray-500">{songs.length} song{songs.length !== 1 ? 's' : ''} generated</p>
+                {credits !== null && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span className="size-1.5 rounded-full bg-indigo-500" />
+                    {credits} Suno credits left
+                  </span>
+                )}
+              </div>
             </div>
             <a
               href="/generation"
