@@ -21,8 +21,10 @@ export function Typewriter({
 		else if (!del && sub === full.length) t = setTimeout(() => setDel(true), pause);
 		else if (del && sub > 0) t = setTimeout(() => setSub(sub - 1), speed / 2);
 		else {
-			setDel(false);
-			setIdx((idx + 1) % texts.length);
+			t = setTimeout(() => {
+				setDel(false);
+				setIdx((idx + 1) % texts.length);
+			}, 0);
 		}
 		return () => clearTimeout(t);
 	}, [sub, del, idx, texts, speed, pause]);

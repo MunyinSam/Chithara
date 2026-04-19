@@ -5,8 +5,10 @@ import { Waveform } from './waveform';
 
 // ——— How-it-works step vizzes ———
 
+const STEP_ONE_TEXTS = ['a calm lofi beat', 'cinematic strings', 'golden hour drive'];
+
 export function StepOneViz() {
-	const texts = ['a calm lofi beat', 'cinematic strings', 'golden hour drive'];
+	const texts = STEP_ONE_TEXTS;
 	const [i, setI] = useState(0);
 	const [sub, setSub] = useState(0);
 	const [del, setDel] = useState(false);
@@ -17,11 +19,13 @@ export function StepOneViz() {
 		else if (!del && sub === full.length) t = setTimeout(() => setDel(true), 1500);
 		else if (del && sub > 0) t = setTimeout(() => setSub(sub - 1), 35);
 		else {
-			setDel(false);
-			setI((i + 1) % texts.length);
+			t = setTimeout(() => {
+				setDel(false);
+				setI((i + 1) % texts.length);
+			}, 0);
 		}
 		return () => clearTimeout(t);
-	}, [sub, del, i]);
+	}, [sub, del, i, texts]);
 	return (
 		<div
 			className="absolute inset-0 flex items-center px-4 font-serif italic text-base"
@@ -38,13 +42,15 @@ export function StepOneViz() {
 	);
 }
 
+const STEP_TWO_CHIPS = ['Lofi', 'Jazz', 'Pop', 'Ambient', 'Cinematic', 'Folk'];
+
 export function StepTwoViz() {
-	const chips = ['Lofi', 'Jazz', 'Pop', 'Ambient', 'Cinematic', 'Folk'];
+	const chips = STEP_TWO_CHIPS;
 	const [active, setActive] = useState(0);
 	useEffect(() => {
 		const id = setInterval(() => setActive((a) => (a + 1) % chips.length), 900);
 		return () => clearInterval(id);
-	}, []);
+	}, [chips.length]);
 	return (
 		<div className="absolute inset-0 p-4 flex flex-wrap gap-1.5 items-center justify-center content-center">
 			{chips.map((c, i) => (
@@ -85,7 +91,7 @@ export function FeatureTextToMusicViz() {
 		<div className="absolute inset-0 p-4 flex flex-col justify-between">
 			<p className="font-mono text-[9px] tracking-widest text-[oklch(0.55_0.015_60)]">INPUT</p>
 			<p className="font-serif italic text-[14px] text-[oklch(0.32_0.015_60)] leading-tight">
-				"a rainy afternoon in Lisbon, vinyl crackle"
+				&ldquo;a rainy afternoon in Lisbon, vinyl crackle&rdquo;
 			</p>
 			<div className="flex justify-between items-center">
 				<p

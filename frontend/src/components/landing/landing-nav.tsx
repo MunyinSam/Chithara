@@ -67,16 +67,16 @@ export function LandingNav() {
 					Features
 				</Link>
 				<Link
-					href="/generation"
-					className="under-link font-mono text-[10px] tracking-widest uppercase text-[oklch(0.32_0.015_60)]"
-				>
-					Generate
-				</Link>
-				<Link
 					href="/library"
 					className="under-link font-mono text-[10px] tracking-widest uppercase text-[oklch(0.32_0.015_60)]"
 				>
 					Library
+				</Link>
+				<Link
+					href="/generation"
+					className="under-link font-mono text-[10px] tracking-widest uppercase text-[oklch(0.32_0.015_60)]"
+				>
+					Generate
 				</Link>
 				<Link
 					href="/#how"

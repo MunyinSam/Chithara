@@ -7,8 +7,8 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { Card, CardContent } from '@/src/components/ui/card';
 import { Textarea } from '@/src/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { Waveform, MiniWave } from '@/src/components/landing/waveform';
@@ -194,7 +194,7 @@ export default function GenerationPage() {
 					className="px-9 py-4 border-b flex justify-between font-mono text-[11px] tracking-widest uppercase"
 					style={{ borderColor: rule, color: mid }}
 				>
-					<a href="/" className="inline-flex items-center gap-2.5">
+					<Link href="/" className="inline-flex items-center gap-2.5">
 						<span
 							className="w-1.5 h-1.5 rounded-full pulse-dot"
 							style={{ background: accent }}
@@ -211,7 +211,7 @@ export default function GenerationPage() {
 						>
 							Chithara
 						</span>
-					</a>
+					</Link>
 					<span>The Composition Desk · № 042</span>
 					<a href="/library" className="under-link">
 						Library →
@@ -249,7 +249,6 @@ export default function GenerationPage() {
 								style={{ color: mid }}
 							>
 								One sentence in · one song out ·{' '}
-								{Math.floor(Math.random() * 6) + 5} sec average
 							</p>
 						</div>
 					</div>
@@ -398,20 +397,20 @@ export default function GenerationPage() {
 								className="font-mono text-[10px] tracking-widest uppercase flex items-center gap-5"
 								style={{ color: mid }}
 							>
-								<span className="inline-flex items-center gap-2">
+								{/* <span className="inline-flex items-center gap-2">
 									<span
 										className="w-1.5 h-1.5 rounded-full pulse-dot inline-block"
 										style={{ background: accent }}
 									/>
 									47 render nodes online
-								</span>
+								</span> */}
 								{credits !== null && (
 									<span className="inline-flex items-center gap-2">
 										<span
 											className="w-1.5 h-1.5 rounded-full inline-block"
 											style={{ background: accentDeep }}
 										/>
-										{credits} Suno credits left
+										{credits} Suno credits left (14 is consumed per generation)
 									</span>
 								)}
 							</div>
@@ -477,7 +476,7 @@ export default function GenerationPage() {
 									className="font-serif italic text-lg mb-5"
 									style={{ color: ink2 }}
 								>
-									"{prompt}"
+									&ldquo;{prompt}&rdquo;
 								</p>
 								<Waveform
 									bars={64}

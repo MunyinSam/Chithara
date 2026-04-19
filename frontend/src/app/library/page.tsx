@@ -48,6 +48,7 @@ function SongCard({
 	onSelect: (song: Song) => void;
 	onTogglePrivacy: (song: Song) => void;
 }) {
+	const [open, setOpen] = useState(false);
 	const [copied, setCopied] = useState(false);
 
 	const copyShareLink = (e: React.MouseEvent) => {
@@ -60,115 +61,174 @@ function SongCard({
 
 	return (
 		<div
-			onClick={() => onSelect(song)}
-			className="group cursor-pointer border-b py-7 transition-colors hover:bg-[oklch(0.955_0.014_75)]"
-			style={{ borderColor: rule }}
+			className="border transition-colors mb-3"
+			style={{
+				borderColor: open ? ink : rule,
+				background: open ? 'oklch(0.955 0.014 75)' : 'oklch(0.968 0.013 75)',
+			}}
 		>
-			<div className="flex items-start justify-between gap-6">
-				{/* Index + title block */}
-				<div className="flex items-start gap-5 min-w-0 flex-1">
-					<span
-						className="font-serif italic leading-none shrink-0 mt-1"
-						style={{
-							fontSize: 32,
-							color: accentDeep,
-							lineHeight: 1,
-						}}
-					>
-						{String(index + 1).padStart(2, '0')}
-					</span>
-					<div className="min-w-0">
-						<div className="flex items-center gap-3 flex-wrap">
-							{active && (
-								<span className="flex gap-0.5 items-end h-4 shrink-0">
-									{[1, 2, 3].map((i) => (
-										<span
-											key={i}
-											className="w-0.5 rounded-full animate-pulse"
-											style={{
-												height: `${8 + i * 4}px`,
-												animationDelay: `${i * 0.15}s`,
-												background: accent,
-											}}
-										/>
-									))}
-								</span>
-							)}
-							<h3
-								className="font-serif text-[22px] leading-tight truncate"
-								style={{ color: ink }}
+			{/* Always-visible trigger row */}
+			<button
+				type="button"
+				onClick={() => setOpen((o) => !o)}
+				className="w-full text-left px-7 pt-7 pb-6 flex gap-6 group"
+			>
+				{/* Index */}
+				<span
+					className="font-serif italic shrink-0"
+					style={{ fontSize: 40, color: accentDeep, lineHeight: 1 }}
+				>
+					{String(index + 1).padStart(2, '0')}
+				</span>
+
+				{/* Main content */}
+				<div className="min-w-0 flex-1">
+					<div className="flex items-start justify-between gap-6">
+						<div className="min-w-0 flex-1">
+							<div className="flex items-center gap-3 flex-wrap">
+								{active && (
+									<span className="flex gap-0.5 items-end h-4 shrink-0">
+										{[1, 2, 3].map((i) => (
+											<span
+												key={i}
+												className="w-0.5 rounded-full animate-pulse"
+												style={{
+													height: `${8 + i * 4}px`,
+													animationDelay: `${i * 0.15}s`,
+													background: accent,
+												}}
+											/>
+										))}
+									</span>
+								)}
+								<h3
+									className="font-serif text-[28px] leading-tight"
+									style={{ color: ink }}
+								>
+									{song.title}
+								</h3>
+							</div>
+							<p
+								className="font-mono text-[10px] tracking-widest uppercase mt-2"
+								style={{ color: mid }}
 							>
-								{song.title}
-							</h3>
+								{song.genre || 'Unknown'} · {formatDate(song.created_at)}
+							</p>
+							<p
+								className="font-serif italic text-[14px] mt-2.5 line-clamp-1"
+								style={{ color: ink2 }}
+							>
+								&ldquo;{song.prompt}&rdquo;
+							</p>
 						</div>
+
+						{/* Right side */}
+						<div className="flex flex-col items-end gap-3 shrink-0 pt-1">
+							<span
+								className="font-mono text-[9px] tracking-widest uppercase px-3 py-1.5 border"
+								style={{
+									borderColor: song.privacy_status === 'PUBLIC' ? accentDeep : rule,
+									color: song.privacy_status === 'PUBLIC' ? accentDeep : mid,
+								}}
+							>
+								{song.privacy_status === 'PUBLIC' ? 'Public' : 'Private'}
+							</span>
+							{/* Expand affordance — styled as a small button */}
+							<span
+								className="font-mono text-[9px] tracking-[0.16em] uppercase px-3 py-1.5 border flex items-center gap-2 transition-colors"
+								style={{
+									borderColor: open ? ink : rule,
+									color: open ? ink : mid,
+									background: open ? 'oklch(0.18 0.015 60 / 0.06)' : 'transparent',
+								}}
+							>
+								{open ? 'Collapse' : 'Expand'}
+								<span
+									className="inline-block transition-transform duration-300"
+									style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+								>
+									↓
+								</span>
+							</span>
+						</div>
+					</div>
+				</div>
+			</button>
+
+			{/* Accordion panel */}
+			{open && (
+				<div
+					className="px-7 pb-8 flex flex-col gap-6"
+					style={{ borderTop: `1px solid ${rule}` }}
+				>
+					{/* Full prompt */}
+					<div className="pt-6">
 						<p
-							className="font-mono text-[10px] tracking-widest uppercase mt-1"
+							className="font-mono text-[9px] tracking-[0.2em] uppercase mb-2"
 							style={{ color: mid }}
 						>
-							{song.genre} · {formatDate(song.created_at)}
+							Full prompt
 						</p>
 						<p
-							className="font-serif italic text-sm mt-2 line-clamp-1"
+							className="font-serif italic text-[17px] leading-relaxed"
 							style={{ color: ink2 }}
 						>
 							&ldquo;{song.prompt}&rdquo;
 						</p>
 					</div>
-				</div>
 
-				{/* Status + actions */}
-				<div
-					className="flex flex-col items-end gap-3 shrink-0"
-					onClick={(e) => e.stopPropagation()}
-				>
-					<span
-						className="font-mono text-[9px] tracking-widest uppercase px-2 py-1 border"
-						style={{
-							borderColor:
-								song.privacy_status === 'PUBLIC'
-									? accentDeep
-									: rule,
-							color:
-								song.privacy_status === 'PUBLIC'
-									? accentDeep
-									: mid,
-						}}
+					{/* Metadata strip */}
+					<div
+						className="flex flex-wrap gap-x-8 gap-y-2 py-3 border-y font-mono text-[9px] tracking-[0.18em] uppercase"
+						style={{ borderColor: rule, color: mid }}
 					>
-						{song.privacy_status === 'PUBLIC'
-							? 'Public'
-							: 'Private'}
-					</span>
-					<div className="flex gap-3 flex-wrap justify-end">
+						<span>Genre · <span style={{ color: ink2 }}>{song.genre || '—'}</span></span>
+						<span>Added · <span style={{ color: ink2 }}>{formatDate(song.created_at)}</span></span>
+						<span>Visibility · <span style={{ color: song.privacy_status === 'PUBLIC' ? accentDeep : ink2 }}>{song.privacy_status}</span></span>
+					</div>
+
+					{/* Action buttons — all styled as real buttons */}
+					<div
+						className="flex items-center gap-3 flex-wrap"
+						onClick={(e) => e.stopPropagation()}
+					>
+						{/* Primary: Play/Stop */}
+						<button
+							onClick={() => onSelect(song)}
+							className="font-mono text-[10px] tracking-[0.16em] uppercase px-6 py-3 border transition-colors"
+							style={{ background: ink, color: 'oklch(0.972 0.012 75)', borderColor: ink }}
+						>
+							{active ? '■  Stop' : '▶  Play'}
+						</button>
+
+						{/* Secondary bordered buttons */}
 						<a
 							href={song.audio_file}
 							download
-							className="font-mono text-[10px] tracking-widest uppercase under-link"
-							style={{ color: ink2 }}
+							className="font-mono text-[10px] tracking-[0.16em] uppercase px-5 py-3 border transition-colors"
+							style={{ borderColor: rule, color: ink2 }}
 						>
-							Download
+							↓ Download
 						</a>
 						<button
 							onClick={() => onTogglePrivacy(song)}
-							className="font-mono text-[10px] tracking-widest uppercase under-link"
-							style={{ color: ink2 }}
+							className="font-mono text-[10px] tracking-[0.16em] uppercase px-5 py-3 border transition-colors"
+							style={{ borderColor: rule, color: ink2 }}
 						>
-							{song.privacy_status === 'PUBLIC'
-								? 'Make Private'
-								: 'Make Public'}
+							{song.privacy_status === 'PUBLIC' ? 'Make Private' : 'Make Public'}
 						</button>
-						{song.privacy_status === 'PUBLIC' &&
-							song.share_token && (
-								<button
-									onClick={copyShareLink}
-									className="font-mono text-[10px] tracking-widest uppercase under-link"
-									style={{ color: accentDeep }}
-								>
-									{copied ? 'Copied ✓' : 'Copy Link'}
-								</button>
-							)}
+						{song.privacy_status === 'PUBLIC' && song.share_token && (
+							<button
+								onClick={copyShareLink}
+								className="font-mono text-[10px] tracking-[0.16em] uppercase px-5 py-3 border transition-colors"
+								style={{ borderColor: accentDeep, color: accentDeep }}
+							>
+								{copied ? '✓ Copied' : '⎘ Copy Link'}
+							</button>
+						)}
 					</div>
 				</div>
-			</div>
+			)}
 		</div>
 	);
 }
@@ -473,10 +533,7 @@ export default function LibraryPage() {
 
 						{/* Song list */}
 						{!loading && !error && filtered.length > 0 && (
-							<div
-								className="border-t"
-								style={{ borderColor: rule }}
-							>
+							<div className="flex flex-col">
 								{filtered.map((song, i) => (
 									<SongCard
 										key={song.id}

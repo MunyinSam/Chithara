@@ -29,7 +29,7 @@ function PromptCard({ text, q }: { text: string; q: string }) {
 			>
 				{q}
 			</span>
-			"{text}"
+			&ldquo;{text}&rdquo;
 			<MiniWave count={4} />
 		</div>
 	);
