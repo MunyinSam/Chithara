@@ -13,8 +13,6 @@ import {
 import { Separator } from '@/src/components/ui/separator';
 import { cn } from '@/lib/utils';
 
-import { Waveform, MiniWave } from '@/src/components/landing/waveform';
-import { Typewriter } from '@/src/components/landing/typewriter';
 import {
 	FloatingNotes,
 	ParticleField,
@@ -186,11 +184,11 @@ export default function Home() {
 												'var(--accent, oklch(0.62 0.17 35))',
 										}}
 									/>
-									1,482 songs scored today
+									X songs scored today
 								</span>
 								<span className="hidden sm:inline">/</span>
 								<span className="hidden sm:inline">
-									Average render · 7.2 sec
+									Average render · Y sec
 								</span>
 							</div>
 						</div>
@@ -227,7 +225,7 @@ export default function Home() {
 										color: 'var(--accent-deep, oklch(0.48 0.17 35))',
 									}}
 								>
-									nothing you don't
+									nothing you don&apos;t
 								</span>
 								.
 							</h2>
@@ -431,7 +429,7 @@ export default function Home() {
 							'font-mono text-[11px] tracking-[0.14em] uppercase rounded-none bg-[oklch(0.18_0.015_60)] text-[oklch(0.972_0.012_75)] hover:bg-[var(--accent-deep,oklch(0.48_0.17_35))] px-10'
 						)}
 					>
-						Generate a song — it's free →
+						Generate a song — it&apos;s free →
 					</Link>
 				</section>
 
