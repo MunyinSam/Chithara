@@ -3,222 +3,220 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardContent } from '@/src/components/ui/card';
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/src/components/ui/button';
 
 interface Stats {
-  total_songs: number;
-  public_songs: number;
-  total_generations: number;
+	total_songs: number;
+	public_songs: number;
+	total_generations: number;
 }
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api';
 
+const ink = 'oklch(0.18 0.015 60)';
+const mid = 'oklch(0.55 0.015 60)';
+const rule = 'oklch(0.85 0.015 60)';
+const bg = 'oklch(0.972 0.012 75)';
+const accent = 'var(--accent, oklch(0.62 0.17 35))';
+const accentDeep = 'var(--accent-deep, oklch(0.48 0.17 35))';
+
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'long', day: 'numeric', year: 'numeric',
-  });
+	return new Date(iso).toLocaleDateString('en-US', {
+		month: 'long',
+		day: 'numeric',
+		year: 'numeric',
+	});
 }
 
-function StatCard({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="flex flex-col items-center justify-center bg-gray-50 rounded-xl p-5">
-      <span className="text-3xl font-bold text-indigo-600">{value}</span>
-      <span className="text-xs text-gray-400 mt-1 text-center">{label}</span>
-    </div>
-  );
+function StatBlock({ label, value }: { label: string; value: number | string }) {
+	return (
+		<div
+			className="flex flex-col gap-1 px-6 py-5 border-r last:border-r-0"
+			style={{ borderColor: rule }}
+		>
+			<span className="font-serif text-[36px] leading-none" style={{ color: ink }}>
+				{value}
+			</span>
+			<span
+				className="font-mono text-[9px] tracking-[0.2em] uppercase"
+				style={{ color: mid }}
+			>
+				{label}
+			</span>
+		</div>
+	);
 }
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+	const { data: session, status } = useSession();
+	const router = useRouter();
+	const [stats, setStats] = useState<Stats | null>(null);
 
-  const [stats, setStats]     = useState<Stats | null>(null);
-  const [saving, setSaving]   = useState(false);
-  const [saved, setSaved]     = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName]   = useState('');
+	const backendUser = session?.backendUser;
+	const googleUser = session?.user;
 
-  const backendUser = session?.backendUser;
-  const googleUser  = session?.user;
+	useEffect(() => {
+		if (status === 'unauthenticated') router.replace('/login');
+	}, [status, router]);
 
-  // Redirect if not logged in
-  useEffect(() => {
-    if (status === 'unauthenticated') router.replace('/login');
-  }, [status, router]);
+	useEffect(() => {
+		if (!backendUser?.id) return;
+		fetch(`${API}/users/${backendUser.id}/stats/`)
+			.then((r) => r.json())
+			.then(setStats)
+			.catch(() => {});
+	}, [backendUser?.id]);
 
-  // Populate form fields from session
-  useEffect(() => {
-    if (backendUser) {
-      setFirstName(backendUser.first_name ?? '');
-      setLastName(backendUser.last_name ?? '');
-    }
-  }, [backendUser]);
+	if (status === 'loading' || !backendUser) {
+		return (
+			<div className="min-h-screen flex items-center justify-center" style={{ background: bg }}>
+				<div
+					className="size-5 rounded-full border-2 border-t-transparent animate-spin"
+					style={{ borderColor: `${accentDeep} transparent ${accentDeep} ${accentDeep}` }}
+				/>
+			</div>
+		);
+	}
 
-  // Fetch stats
-  useEffect(() => {
-    if (!backendUser?.id) return;
-    fetch(`${API}/users/${backendUser.id}/stats/`)
-      .then((r) => r.json())
-      .then(setStats)
-      .catch(() => {});
-  }, [backendUser?.id]);
+	const displayName =
+		[backendUser.first_name, backendUser.last_name].filter(Boolean).join(' ') ||
+		backendUser.username;
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!backendUser?.id) return;
-    setSaving(true);
-    try {
-      await fetch(`${API}/users/${backendUser.id}/`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ first_name: firstName, last_name: lastName }),
-      });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
-    } finally {
-      setSaving(false);
-    }
-  };
+	return (
+		<div className="min-h-screen" style={{ background: bg }}>
+			{/* Top meta bar */}
+			<div
+				className="px-9 py-4 border-b flex justify-between font-mono text-[11px] tracking-widest uppercase"
+				style={{ borderColor: rule, color: mid }}
+			>
+				<Link href="/" className="inline-flex items-center gap-2.5">
+					<span
+						className="w-1.5 h-1.5 rounded-full pulse-dot"
+						style={{ background: accent }}
+					/>
+					<span
+						style={{
+							color: ink,
+							fontFamily: '"Instrument Serif", Georgia, serif',
+							fontSize: 18,
+							textTransform: 'none',
+							letterSpacing: '-0.01em',
+						}}
+					>
+						Chithara
+					</span>
+				</Link>
+				<span>The Composer&apos;s Account · № 001</span>
+				<Link href="/library" className="under-link" style={{ color: mid }}>
+					Library →
+				</Link>
+			</div>
 
-  if (status === 'loading' || !backendUser) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="size-8 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin" />
-      </div>
-    );
-  }
+			<div className="max-w-205 mx-auto px-9 py-16">
+				{/* Page heading */}
+				<div
+					className="grid md:grid-cols-[1fr_2fr] gap-10 pb-8 border-b-2 mb-12 items-end"
+					style={{ borderColor: ink }}
+				>
+					<div>
+						<p
+							className="font-mono text-[10px] tracking-[0.2em] uppercase mb-2"
+							style={{ color: accent }}
+						>
+							Account · Profile
+						</p>
+						<h1
+							className="font-serif text-[48px] leading-[0.95] tracking-tight"
+							style={{ color: ink }}
+						>
+							Your
+							<br />
+							<em>Profile</em>
+						</h1>
+					</div>
+					<p
+						className="font-serif italic text-[18px] leading-relaxed pb-1"
+						style={{ color: mid }}
+					>
+						Review your archive and keep tabs on your output.
+					</p>
+				</div>
 
-  const displayName = [backendUser.first_name, backendUser.last_name].filter(Boolean).join(' ') || backendUser.username;
+				{/* Identity */}
+				<div
+					className="border mb-0 grid md:grid-cols-[auto_1fr] overflow-hidden"
+					style={{ borderColor: rule }}
+				>
+					<div
+						className="flex items-center justify-center p-8 border-r"
+						style={{ borderColor: rule, background: 'oklch(0.96 0.012 75)' }}
+					>
+						<div
+							className="relative size-20 overflow-hidden border"
+							style={{ borderColor: rule }}
+						>
+							{googleUser?.image ? (
+								<Image
+									src={googleUser.image}
+									alt={displayName}
+									fill
+									className="object-cover"
+								/>
+							) : (
+								<div
+									className="size-full flex items-center justify-center font-serif text-2xl"
+									style={{ background: accentDeep, color: bg }}
+								>
+									{displayName.slice(0, 2).toUpperCase()}
+								</div>
+							)}
+						</div>
+					</div>
+					<div className="p-8 flex flex-col justify-center gap-2">
+						<p className="font-serif text-[22px] tracking-tight" style={{ color: ink }}>
+							{displayName}
+						</p>
+						<p className="font-mono text-[11px] tracking-wider" style={{ color: mid }}>
+							{backendUser.email}
+						</p>
+						<p
+							className="font-mono text-[10px] tracking-wider mt-1"
+							style={{ color: 'oklch(0.7 0.015 60)' }}
+						>
+							Member since {formatDate(backendUser.date_joined)}
+						</p>
+					</div>
+				</div>
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-12 px-6">
-      <div className="max-w-2xl mx-auto space-y-6">
+				{/* Stats */}
+				<div
+					className="border border-t-0 mb-12 grid grid-cols-3"
+					style={{ borderColor: rule }}
+				>
+					<StatBlock label="Songs generated" value={stats?.total_songs ?? '—'} />
+					<StatBlock label="Public songs" value={stats?.public_songs ?? '—'} />
+					<StatBlock label="Total prompts" value={stats?.total_generations ?? '—'} />
+				</div>
 
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-          <p className="text-gray-400 mt-1 text-sm">Manage your account</p>
-        </div>
-
-        {/* Identity card */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-5">
-              {/* Avatar */}
-              <div className="relative size-16 rounded-full overflow-hidden shrink-0 ring-2 ring-indigo-100">
-                {googleUser?.image ? (
-                  <Image
-                    src={googleUser.image}
-                    alt={displayName}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="size-full bg-indigo-600 flex items-center justify-center text-white text-xl font-bold">
-                    {displayName.slice(0, 2).toUpperCase()}
-                  </div>
-                )}
-              </div>
-
-              {/* Name + meta */}
-              <div className="min-w-0">
-                <p className="text-lg font-semibold text-gray-900 truncate">{displayName}</p>
-                <p className="text-sm text-gray-400 truncate">{backendUser.email}</p>
-                <p className="text-xs text-gray-300 mt-0.5">
-                  Member since {formatDate(backendUser.date_joined)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Stats */}
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm font-medium text-gray-700 mb-4">Your activity</p>
-            <div className="grid grid-cols-3 gap-3">
-              <StatCard label="Songs generated" value={stats?.total_songs ?? '—'} />
-              <StatCard label="Public songs"    value={stats?.public_songs ?? '—'} />
-              <StatCard label="Total prompts"   value={stats?.total_generations ?? '—'} />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Edit name */}
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm font-medium text-gray-700 mb-4">Edit display name</p>
-            <form onSubmit={handleSave} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-500">First name</label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-500">Last name</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs text-gray-500">Email</label>
-                <input
-                  type="text"
-                  value={backendUser.email}
-                  disabled
-                  className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-400 cursor-not-allowed"
-                />
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className={cn(
-                    buttonVariants({ size: 'default' }),
-                    'bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-60'
-                  )}
-                >
-                  {saving ? 'Saving…' : 'Save changes'}
-                </button>
-                {saved && (
-                  <span className="text-sm text-green-600 font-medium">Saved!</span>
-                )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Quick links */}
-        <div className="flex gap-3">
-          <a
-            href="/library"
-            className={cn(buttonVariants({ variant: 'outline', size: 'default' }))}
-          >
-            Your Library
-          </a>
-          <a
-            href="/generation"
-            className={cn(buttonVariants({ size: 'default' }), 'bg-indigo-600 hover:bg-indigo-700 text-white')}
-          >
-            + New Song
-          </a>
-        </div>
-
-      </div>
-    </div>
-  );
+				{/* Quick links */}
+				<div className="pt-8 border-t flex gap-4" style={{ borderColor: rule }}>
+					<Link
+						href="/library"
+						className="font-mono text-[10px] tracking-[0.18em] uppercase px-6 py-3 border transition-colors"
+						style={{ borderColor: rule, color: ink }}
+					>
+						Your Library →
+					</Link>
+					<Link
+						href="/generation"
+						className="font-mono text-[10px] tracking-[0.18em] uppercase px-6 py-3 border transition-colors"
+						style={{ background: ink, color: bg, borderColor: ink }}
+					>
+						+ New Song
+					</Link>
+				</div>
+			</div>
+		</div>
+	);
 }

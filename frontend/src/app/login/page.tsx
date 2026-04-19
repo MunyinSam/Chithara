@@ -1,53 +1,99 @@
 import { signIn } from '@/auth';
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle,
-} from '@/src/components/ui/card';
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/src/components/ui/button';
 
 export default function LoginPage() {
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
-			<Card className="w-full max-w-sm p-5">
-				<CardHeader className="text-center pb-2 pt-10">
-					<p className="text-2xl font-bold tracking-tight">
-						Chithara
-					</p>
-					<CardTitle className="text-lg font-medium text-gray-600 mt-1">
-						Sign in to your account
-					</CardTitle>
-				</CardHeader>
+		<div
+			className="min-h-screen relative overflow-hidden flex items-center justify-center"
+			style={{
+				background: 'oklch(0.972 0.012 75)',
+				color: 'oklch(0.18 0.015 60)',
+			}}
+		>
+			{/* Paper grain */}
+			<div
+				aria-hidden
+				className="fixed inset-0 z-1 pointer-events-none mix-blend-multiply opacity-60"
+				style={{
+					backgroundImage:
+						'radial-gradient(oklch(0.18 0.015 60 / 0.035) 1px, transparent 1px)',
+					backgroundSize: '3px 3px',
+				}}
+			/>
+			<div
+				aria-hidden
+				className="fixed inset-0 z-1 pointer-events-none"
+				style={{
+					background:
+						'radial-gradient(ellipse at 50% 0%, oklch(0.98 0.03 var(--accent-h, 35) / 0.35), transparent 60%), radial-gradient(ellipse at 100% 100%, oklch(0.92 0.05 var(--accent-h, 35) / 0.25), transparent 50%)',
+				}}
+			/>
 
-				<CardContent className="flex flex-col gap-4 pt-4">
-					<form
-						action={async () => {
-							'use server';
-							await signIn('google', { redirectTo: '/' });
+			<div className="relative z-2 w-full max-w-120 px-9 py-16">
+				{/* Section marker */}
+				<div
+					className="font-serif italic leading-none mb-6"
+					style={{
+						fontSize: 80,
+						color: 'var(--accent-deep, oklch(0.48 0.17 35))',
+						lineHeight: 0.8,
+					}}
+				>
+					§
+				</div>
+
+				<div
+					className="border-b-2 pb-8 mb-10"
+					style={{ borderColor: 'oklch(0.18 0.015 60)' }}
+				>
+					<h1
+						className="font-serif font-normal leading-[0.9] tracking-[-0.025em] m-0"
+						style={{ fontSize: 'clamp(48px, 8vw, 72px)' }}
+					>
+						Sign{' '}
+						<span
+							className="italic"
+							style={{
+								color: 'var(--accent-deep, oklch(0.48 0.17 35))',
+							}}
+						>
+							in
+						</span>
+						.
+					</h1>
+					<p
+						className="font-mono text-[11px] tracking-widest uppercase mt-3"
+						style={{ color: 'oklch(0.55 0.015 60)' }}
+					>
+						Chithara · A journal of generated music
+					</p>
+				</div>
+
+				<form
+					action={async () => {
+						'use server';
+						await signIn('google', { redirectTo: '/' });
+					}}
+				>
+					<button
+						type="submit"
+						className="w-full inline-flex items-center justify-center gap-3 px-6 py-4 font-mono text-[11px] tracking-[0.14em] uppercase border transition-all hover:bg-[oklch(0.945_0.016_75)]"
+						style={{
+							borderColor: 'oklch(0.85 0.015 60)',
+							color: 'oklch(0.18 0.015 60)',
 						}}
 					>
-						<button
-							type="submit"
-							className={cn(
-								buttonVariants({
-									variant: 'outline',
-									size: 'lg',
-								}),
-								'w-full flex items-center justify-center gap-3'
-							)}
-						>
-							<GoogleIcon />
-							Continue with Google
-						</button>
-					</form>
+						<GoogleIcon />
+						Continue with Google
+					</button>
+				</form>
 
-					<p className="text-xs text-center text-gray-400">
-						By signing in you agree to our terms of service.
-					</p>
-				</CardContent>
-			</Card>
+				<p
+					className="font-mono text-[10px] tracking-widest uppercase mt-6 text-center"
+					style={{ color: 'oklch(0.55 0.015 60)' }}
+				>
+					By signing in you agree to our terms of service.
+				</p>
+			</div>
 		</div>
 	);
 }
@@ -57,7 +103,7 @@ function GoogleIcon() {
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 24 24"
-			className="size-5"
+			className="size-4"
 		>
 			<path
 				d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
