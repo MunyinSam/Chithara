@@ -75,7 +75,7 @@ export default function GenerationPage() {
 	const [result, setResult] = useState<HistoryEntry | null>(null);
 	const [hint, setHint] = useState(0);
 	const [credits, setCredits] = useState<number | null>(null);
-	const [avgSecs] = useState(() => Math.floor(Math.random() * 6) + 5);
+	const [avgMins] = useState(() => Math.floor(Math.random() * 7) + 2);
 	const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
 	useEffect(() => {
@@ -249,7 +249,7 @@ export default function GenerationPage() {
 								className="font-mono text-[11px] tracking-widest uppercase mt-3"
 								style={{ color: mid }}
 							>
-								One sentence in · one song out · {avgSecs} sec average
+								One sentence in · one song out · {avgMins} min average
 							</p>
 						</div>
 					</div>
