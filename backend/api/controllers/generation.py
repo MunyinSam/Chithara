@@ -32,7 +32,7 @@ def _save_song_from_clip(history, clip, task_id):
     song = Song(
         owner=history.user,
         title=clip.get('title') or history.prompt_used[:50],
-        genre=clip.get('style') or '',
+        genre=clip.get('style') or history.style_used or '',
         prompt=history.prompt_used,
         privacy_status='PRIVATE',
     )
@@ -155,6 +155,7 @@ def generate_song(request):
     history = GenerationHistory.objects.create(
         user=user,
         prompt_used=prompt,
+        style_used=style,
         status='PENDING',
     )
 

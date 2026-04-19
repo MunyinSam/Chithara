@@ -11,6 +11,7 @@ class GenerationHistory(models.Model):
     )
     suno_task_id = models.CharField(max_length=255, blank=True, null=True)
     prompt_used = models.TextField()
+    style_used = models.CharField(max_length=100, blank=True, default='')
     status = models.CharField(max_length=50, default='PENDING')
     created_at = models.DateTimeField(auto_now_add=True)
     error_message = models.TextField(blank=True, null=True)

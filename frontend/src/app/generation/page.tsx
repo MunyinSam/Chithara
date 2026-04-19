@@ -1,11 +1,5 @@
 'use client';
 
-/**
- * Drop in at: src/app/generation/page.tsx
- * Editorial / warm theme matching the new landing.
- * Same backend contract as before — POST /generate/, poll /history/:id/.
- */
-
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -432,7 +426,7 @@ export default function GenerationPage() {
 										/>
 										Rendering
 									</span>
-									<span>Estimated · 20–60 sec</span>
+									<span>Estimated · 2-8 minutes</span>
 								</div>
 								<div className="font-serif text-[44px] leading-[1.15] mb-2">
 									Your song is being{' '}
