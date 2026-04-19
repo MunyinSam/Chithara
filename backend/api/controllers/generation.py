@@ -2,6 +2,7 @@ import requests
 from datetime import date
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.db import transaction
 from django.db.models import F
 from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema
@@ -23,25 +24,33 @@ DAILY_GENERATION_LIMIT = getattr(settings, 'DAILY_GENERATION_LIMIT', 10)
 def _save_song_from_clip(history, clip, task_id):
     """
     Download audio from Suno clip data, create a Song, and mark history COMPLETED.
+    Uses select_for_update to prevent duplicate songs when polling and callback race.
     Raises on any failure so the caller can mark FAILED.
     """
-    audio_url = clip.get('audioUrl') or clip.get('audio_url', '')
-    audio_resp = requests.get(audio_url, timeout=60)
-    audio_resp.raise_for_status()
+    with transaction.atomic():
+        locked = GenerationHistory.objects.select_for_update().get(pk=history.pk)
+        if locked.status == 'COMPLETED':
+            return
 
-    song = Song(
-        owner=history.user,
-        title=clip.get('title') or history.prompt_used[:50],
-        genre=clip.get('style') or history.style_used or '',
-        prompt=history.prompt_used,
-        privacy_status='PRIVATE',
-    )
-    song.audio_file.save(f'{task_id}.mp3', ContentFile(audio_resp.content), save=False)
-    song.save()
+        audio_url = clip.get('audioUrl') or clip.get('audio_url', '')
+        audio_resp = requests.get(audio_url, timeout=60)
+        audio_resp.raise_for_status()
 
-    history.song = song
-    history.status = 'COMPLETED'
-    history.save()
+        song = Song(
+            owner=locked.user,
+            title=clip.get('title') or locked.prompt_used[:50],
+            genre=clip.get('style') or locked.style_used or '',
+            prompt=locked.prompt_used,
+            privacy_status='PRIVATE',
+        )
+        song.audio_file.save(f'{task_id}.mp3', ContentFile(audio_resp.content), save=False)
+        song.save()
+
+        locked.song = song
+        locked.status = 'COMPLETED'
+        locked.save()
+
+    history.refresh_from_db()
 
 
 SUNO_FAILURE_STATUSES = {
