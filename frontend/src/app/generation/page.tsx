@@ -8,7 +8,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Card, CardContent } from '@/src/components/ui/card';
 import { Textarea } from '@/src/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { Waveform, MiniWave } from '@/src/components/landing/waveform';
