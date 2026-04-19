@@ -1,12 +1,16 @@
 import { apiRequest } from './client';
-import type { Song } from '@/src/types';
+import type { PaginatedResponse, Song } from '@/src/types';
 
 export const songService = {
-	/** GET /songs/ — authenticated user's full library */
-	getAll(token: string): Promise<Song[]> {
-		return apiRequest<Song[] | { results: Song[] }>('/songs/', { token }).then(
-			(data) => (Array.isArray(data) ? data : (data.results ?? []))
-		);
+	/** GET /songs/ — paginated library, 4 per page */
+	getPage(
+		token: string,
+		page = 1,
+		filter?: 'PUBLIC' | 'PRIVATE',
+	): Promise<PaginatedResponse<Song>> {
+		const params = new URLSearchParams({ page: String(page) });
+		if (filter) params.set('privacy_status', filter);
+		return apiRequest<PaginatedResponse<Song>>(`/songs/?${params}`, { token });
 	},
 
 	/** GET /songs/public/:token/ — unauthenticated public share page */

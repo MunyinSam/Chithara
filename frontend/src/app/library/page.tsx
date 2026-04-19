@@ -223,27 +223,46 @@ function SongCard({
 	);
 }
 
+const PAGE_SIZE = 4;
+
 export default function LibraryPage() {
 	const { data: session, status: sessionStatus } = useSession();
 	const [songs, setSongs] = useState<Song[]>([]);
+	const [totalCount, setTotalCount] = useState(0);
+	const [page, setPage] = useState(1);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const [filter, setFilter] = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL');
 	const [activeSong, setActiveSong] = useState<Song | null>(null);
 	const [credits, setCredits] = useState<number | null>(null);
 
+	const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
 	useEffect(() => {
 		if (sessionStatus === 'loading' || !session?.backendToken) return;
 		const token = session.backendToken;
 
-		songService.getAll(token)
-			.then((data) => { setSongs(data); setLoading(false); })
+		setLoading(true);
+		songService.getPage(token, page, filter === 'ALL' ? undefined : filter)
+			.then((data) => {
+				setSongs(data.results);
+				setTotalCount(data.count);
+				setLoading(false);
+			})
 			.catch(() => { setError('Failed to load songs.'); setLoading(false); });
+	}, [session?.backendToken, sessionStatus, page, filter]);
 
-		generationService.getCredits(token)
+	useEffect(() => {
+		if (sessionStatus === 'loading' || !session?.backendToken) return;
+		generationService.getCredits(session.backendToken)
 			.then((data) => setCredits(data.credits))
 			.catch(() => {});
 	}, [session?.backendToken, sessionStatus]);
+
+	const changeFilter = (f: 'ALL' | 'PUBLIC' | 'PRIVATE') => {
+		setFilter(f);
+		setPage(1);
+	};
 
 	const togglePrivacy = async (song: Song) => {
 		const next = song.privacy_status === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
@@ -260,10 +279,7 @@ export default function LibraryPage() {
 		setActiveSong((prev) => (prev?.id === song.id ? null : song));
 	};
 
-	const filtered =
-		filter === 'ALL'
-			? songs
-			: songs.filter((s) => s.privacy_status === filter);
+	const filtered = songs;
 
 	return (
 		<>
@@ -353,8 +369,8 @@ export default function LibraryPage() {
 									style={{ color: mid }}
 								>
 									<span>
-										{songs.length} song
-										{songs.length !== 1 ? 's' : ''} on file
+										{totalCount} song
+										{totalCount !== 1 ? 's' : ''} on file
 									</span>
 									{credits !== null && (
 										<span
@@ -383,7 +399,7 @@ export default function LibraryPage() {
 								(f) => (
 									<button
 										key={f}
-										onClick={() => setFilter(f)}
+										onClick={() => changeFilter(f)}
 										className="font-mono text-[10px] tracking-widest uppercase px-5 py-2.5 transition-colors"
 										style={{
 											background:
@@ -499,12 +515,53 @@ export default function LibraryPage() {
 									<SongCard
 										key={song.id}
 										song={song}
-										index={i}
+										index={(page - 1) * PAGE_SIZE + i}
 										active={activeSong?.id === song.id}
 										onSelect={selectSong}
 										onTogglePrivacy={togglePrivacy}
 									/>
 								))}
+							</div>
+						)}
+
+						{/* Pagination */}
+						{!loading && !error && totalPages > 1 && (
+							<div
+								className="flex items-center justify-between mt-10 pt-6 border-t font-mono text-[10px] tracking-widest uppercase"
+								style={{ borderColor: rule, color: mid }}
+							>
+								<button
+									onClick={() => setPage((p) => Math.max(1, p - 1))}
+									disabled={page === 1}
+									className="px-5 py-2.5 border transition-colors disabled:opacity-30"
+									style={{ borderColor: rule, color: ink }}
+								>
+									← Prev
+								</button>
+								<div className="flex items-center gap-1">
+									{Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+										<button
+											key={p}
+											onClick={() => setPage(p)}
+											className="w-8 h-8 flex items-center justify-center border transition-colors"
+											style={{
+												background: p === page ? ink : 'transparent',
+												color: p === page ? paper : mid,
+												borderColor: p === page ? ink : rule,
+											}}
+										>
+											{p}
+										</button>
+									))}
+								</div>
+								<button
+									onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+									disabled={page === totalPages}
+									className="px-5 py-2.5 border transition-colors disabled:opacity-30"
+									style={{ borderColor: rule, color: ink }}
+								>
+									Next →
+								</button>
 							</div>
 						)}
 					</div>
