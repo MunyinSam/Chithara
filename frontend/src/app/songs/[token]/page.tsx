@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/src/components/ui/button';
 
@@ -67,7 +68,7 @@ export default function PublicSongPage() {
         <div className="text-center space-y-3">
           <p className="text-2xl font-semibold text-gray-700">Song not found</p>
           <p className="text-gray-400">This link may have expired or been made private.</p>
-          <a href="/" className={cn(buttonVariants({ variant: 'outline' }))}>Go home</a>
+          <Link href="/" className={cn(buttonVariants({ variant: 'outline' }))}>Go home</Link>
         </div>
       </div>
     );
@@ -87,7 +88,7 @@ export default function PublicSongPage() {
 
         {/* Branding */}
         <div className="text-center">
-          <a href="/" className="text-2xl font-bold text-indigo-600">Chithara</a>
+          <Link href="/" className="text-2xl font-bold text-indigo-600">Chithara</Link>
           <p className="text-sm text-gray-400 mt-1">Shared song</p>
         </div>
 
@@ -151,7 +152,7 @@ export default function PublicSongPage() {
         </div>
 
         <p className="text-center text-xs text-gray-400">
-          Generated with <a href="/" className="text-indigo-500 hover:underline">Chithara</a>
+          Generated with <Link href="/" className="text-indigo-500 hover:underline">Chithara</Link>
         </p>
       </div>
 

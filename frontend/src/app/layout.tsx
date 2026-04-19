@@ -1,24 +1,15 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Monoton, Young_Serif } from 'next/font/google';
+import { Geist_Mono, Young_Serif } from 'next/font/google';
 import './globals.css';
 import { NavBar } from '../components/Navbar';
 import { SessionProvider } from '../components/SessionProvider';
 
-const geistSans = Geist({
-	variable: '--font-geist-sans',
-	subsets: ['latin'],
-});
 
 const geistMono = Geist_Mono({
 	variable: '--font-geist-mono',
 	subsets: ['latin'],
 });
 
-const monoton = Monoton({
-	weight: '400',
-	variable: '--font-monoton',
-	subsets: ['latin'],
-});
 
 const youngSerif = Young_Serif({
 	weight: '400',

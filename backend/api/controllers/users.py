@@ -1,6 +1,7 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, action, permission_classes
+from rest_framework.decorators import api_view, action, permission_classes, throttle_classes
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -8,7 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from ..modules.User import User
 from ..modules.Song import Song
 from ..modules.GenerationHistory import GenerationHistory
-from ..serializer import UserSerializer
+from ..serializer import UserSerializer, GoogleAuthSerializer
 
 
 @extend_schema(tags=['Users'])
@@ -52,18 +53,16 @@ class UserViewSet(viewsets.ModelViewSet):
 )
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle])
 def google_auth(request):
-    google_id = request.data.get('google_id', '').strip()
-    email = request.data.get('email', '').strip()
-    name = request.data.get('name', '').strip()
+    serializer = GoogleAuthSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    if not google_id or not email:
-        return Response(
-            {'error': 'google_id and email are required'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    google_id = serializer.validated_data['google_id']
+    email = serializer.validated_data['email']
+    name = serializer.validated_data['name']
 
-    # Split name
     name_parts = name.split(' ', 1)
     first_name = name_parts[0]
     last_name = name_parts[1] if len(name_parts) > 1 else ''
