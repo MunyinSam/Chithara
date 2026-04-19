@@ -5,14 +5,8 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-
-interface Stats {
-	total_songs: number;
-	public_songs: number;
-	total_generations: number;
-}
-
-const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api';
+import { userService } from '@/src/services/userService';
+import type { UserStats } from '@/src/types';
 
 const ink = 'oklch(0.18 0.015 60)';
 const mid = 'oklch(0.55 0.015 60)';
@@ -51,7 +45,7 @@ function StatBlock({ label, value }: { label: string; value: number | string }) 
 export default function ProfilePage() {
 	const { data: session, status } = useSession();
 	const router = useRouter();
-	const [stats, setStats] = useState<Stats | null>(null);
+	const [stats, setStats] = useState<UserStats | null>(null);
 
 	const backendUser = session?.backendUser;
 	const googleUser = session?.user;
@@ -62,10 +56,7 @@ export default function ProfilePage() {
 
 	useEffect(() => {
 		if (!backendUser?.id) return;
-		fetch(`${API}/users/${backendUser.id}/stats/`)
-			.then((r) => r.json())
-			.then(setStats)
-			.catch(() => {});
+		userService.getStats(backendUser.id).then(setStats).catch(() => {});
 	}, [backendUser?.id]);
 
 	if (status === 'loading' || !backendUser) {

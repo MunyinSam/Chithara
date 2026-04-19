@@ -3,17 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-
-interface Song {
-	id: number;
-	title: string;
-	genre: string;
-	prompt: string;
-	audio_file: string;
-	created_at: string;
-}
-
-const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api';
+import { songService } from '@/src/services/songService';
+import type { Song } from '@/src/types';
 
 const ink = 'oklch(0.18 0.015 60)';
 const ink2 = 'oklch(0.32 0.015 60)';
@@ -50,13 +41,7 @@ export default function PublicSongPage() {
 	const [duration, setDuration] = useState(0);
 
 	useEffect(() => {
-		fetch(`${API}/songs/public/${token}/`)
-			.then((r) => {
-				if (!r.ok) throw new Error();
-				return r.json();
-			})
-			.then(setSong)
-			.catch(() => setNotFound(true));
+		songService.getPublic(token).then(setSong).catch(() => setNotFound(true));
 	}, [token]);
 
 	const togglePlay = () => {

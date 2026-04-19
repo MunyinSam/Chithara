@@ -5,19 +5,9 @@ import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import AudioPlayer from '@/src/components/AudioPlayer';
 import Link from 'next/link';
-
-interface Song {
-	id: number;
-	title: string;
-	genre: string;
-	prompt: string;
-	audio_file: string;
-	created_at: string;
-	privacy_status: 'PUBLIC' | 'PRIVATE';
-	share_token: string | null;
-}
-
-const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api';
+import { songService } from '@/src/services/songService';
+import { generationService } from '@/src/services/generationService';
+import type { Song } from '@/src/types';
 
 const ink = 'oklch(0.18 0.015 60)';
 const ink2 = 'oklch(0.32 0.015 60)';
@@ -242,57 +232,28 @@ export default function LibraryPage() {
 	const [activeSong, setActiveSong] = useState<Song | null>(null);
 	const [credits, setCredits] = useState<number | null>(null);
 
-	const authHeaders = (): HeadersInit => ({
-		'Content-Type': 'application/json',
-		...(session?.backendToken
-			? { Authorization: `Bearer ${session.backendToken}` }
-			: {}),
-	});
-
 	useEffect(() => {
 		if (sessionStatus === 'loading' || !session?.backendToken) return;
 		const token = session.backendToken;
 
-		fetch(`${API}/songs/`, {
-			headers: { Authorization: `Bearer ${token}` },
-		})
-			.then((r) => {
-				if (!r.ok) throw new Error(`HTTP ${r.status}`);
-				return r.json();
-			})
-			.then((data) => {
-				setSongs(Array.isArray(data) ? data : (data.results ?? []));
-				setLoading(false);
-			})
-			.catch(() => {
-				setError('Failed to load songs.');
-				setLoading(false);
-			});
+		songService.getAll(token)
+			.then((data) => { setSongs(data); setLoading(false); })
+			.catch(() => { setError('Failed to load songs.'); setLoading(false); });
 
-		fetch(`${API}/generate/credits/`, {
-			headers: { Authorization: `Bearer ${token}` },
-		})
-			.then((r) => (r.ok ? r.json() : null))
-			.then((data) => {
-				if (data?.credits != null) setCredits(data.credits);
-			})
+		generationService.getCredits(token)
+			.then((data) => setCredits(data.credits))
 			.catch(() => {});
 	}, [session?.backendToken, sessionStatus]);
 
 	const togglePrivacy = async (song: Song) => {
 		const next = song.privacy_status === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
-		const res = await fetch(`${API}/songs/${song.id}/`, {
-			method: 'PATCH',
-			headers: authHeaders(),
-			body: JSON.stringify({ privacy_status: next }),
-		});
-		if (res.ok) {
-			const updated: Song = await res.json();
-			setSongs((prev) =>
-				prev.map((s) => (s.id === updated.id ? updated : s))
-			);
+		const token = session?.backendToken;
+		if (!token) return;
+		try {
+			const updated = await songService.updatePrivacy(song.id, next, token);
+			setSongs((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
 			if (activeSong?.id === updated.id) setActiveSong(updated);
-		}
+		} catch {}
 	};
 
 	const selectSong = (song: Song) => {

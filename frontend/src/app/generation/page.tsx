@@ -13,6 +13,8 @@ import { Textarea } from '@/src/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { Waveform, MiniWave } from '@/src/components/landing/waveform';
 import { ParticleField } from '@/src/components/landing/atmosphere';
+import { generationService } from '@/src/services/generationService';
+import type { HistoryEntry } from '@/src/types';
 
 const STYLES = [
 	'Lo-fi',
@@ -36,22 +38,6 @@ const PROMPT_HINTS = [
 
 type Status = 'idle' | 'loading' | 'polling' | 'done' | 'error';
 
-interface GenerationResult {
-	history_id: number;
-	task_id: string;
-	status: string;
-}
-interface HistoryEntry {
-	id: number;
-	status: string;
-	prompt_used: string;
-	created_at: string;
-	error_message?: string;
-	song?: { id: number; title: string; genre: string; audio_file: string };
-}
-
-const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api';
-
 const ink = 'oklch(0.18 0.015 60)';
 const ink2 = 'oklch(0.32 0.015 60)';
 const mid = 'oklch(0.55 0.015 60)';
@@ -64,7 +50,7 @@ const accentDeep = 'var(--accent-deep, oklch(0.48 0.17 35))';
 export default function GenerationPage() {
 	const { data: session } = useSession();
 	const tokenRef = useRef<string | undefined>(undefined);
-	tokenRef.current = session?.backendToken;
+	useEffect(() => { tokenRef.current = session?.backendToken; }, [session?.backendToken]);
 
 	const [prompt, setPrompt] = useState('');
 	const [style, setStyle] = useState('');
@@ -76,6 +62,7 @@ export default function GenerationPage() {
 	const [hint, setHint] = useState(0);
 	const [credits, setCredits] = useState<number | null>(null);
 	const [avgMins] = useState(() => Math.floor(Math.random() * 7) + 2);
+	const [waveformSeed] = useState(() => Math.floor(Math.random() * 1000));
 	const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
 	useEffect(() => {
@@ -89,13 +76,8 @@ export default function GenerationPage() {
 	useEffect(() => {
 		const token = tokenRef.current;
 		if (!token) return;
-		fetch(`${API}/generate/credits/`, {
-			headers: { Authorization: `Bearer ${token}` },
-		})
-			.then((r) => (r.ok ? r.json() : null))
-			.then((data) => {
-				if (data?.credits != null) setCredits(data.credits);
-			})
+		generationService.getCredits(token)
+			.then((data) => setCredits(data.credits))
 			.catch(() => {});
 	}, [session?.backendToken]);
 
@@ -103,21 +85,13 @@ export default function GenerationPage() {
 		if (pollRef.current) clearInterval(pollRef.current);
 	};
 
-	const authHeaders = (): HeadersInit => ({
-		'Content-Type': 'application/json',
-		...(tokenRef.current
-			? { Authorization: `Bearer ${tokenRef.current}` }
-			: {}),
-	});
-
 	const pollHistory = (historyId: number) => {
 		setStatus('polling');
 		pollRef.current = setInterval(async () => {
+			const token = tokenRef.current;
+			if (!token) return;
 			try {
-				const res = await fetch(`${API}/history/${historyId}/`, {
-					headers: authHeaders(),
-				});
-				const data: HistoryEntry = await res.json();
+				const data = await generationService.getHistory(historyId, token);
 				if (data.status === 'COMPLETED') {
 					stopPolling();
 					setResult(data);
@@ -141,19 +115,16 @@ export default function GenerationPage() {
 		setStatus('loading');
 		setError('');
 		setResult(null);
+		const token = tokenRef.current;
+		if (!token) return;
 		try {
-			const res = await fetch(`${API}/generate/`, {
-				method: 'POST',
-				headers: authHeaders(),
-				body: JSON.stringify({ prompt, style, title, instrumental }),
-			});
-			if (!res.ok) throw new Error('Failed to start generation.');
-			const data: GenerationResult = await res.json();
+			const data = await generationService.generate(
+				{ prompt, style, title, instrumental },
+				token
+			);
 			pollHistory(data.history_id);
 		} catch (err: unknown) {
-			setError(
-				err instanceof Error ? err.message : 'Something went wrong.'
-			);
+			setError(err instanceof Error ? err.message : 'Something went wrong.');
 			setStatus('error');
 		}
 	};
@@ -481,7 +452,7 @@ export default function GenerationPage() {
 								</p>
 								<Waveform
 									bars={64}
-									seed={Date.now() % 1000}
+									seed={waveformSeed}
 									playing
 									height={70}
 								/>
