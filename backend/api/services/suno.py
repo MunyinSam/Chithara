@@ -13,7 +13,7 @@ HEADERS = {
 }
 
 
-def submit_generation(prompt: str, style: str, title: str, instrumental: bool = False) -> str:
+def submit_generation(prompt: str, style: str, title: str, instrumental: bool = False, api_key: str = '') -> str:
     """
     Submit a generation job to Suno.
     Returns the taskId string.
@@ -28,10 +28,15 @@ def submit_generation(prompt: str, style: str, title: str, instrumental: bool = 
         'title': title,
     }
 
+    headers = {
+        'Authorization': f'Bearer {api_key or settings.SUNO_API_KEY}',
+        'Content-Type': 'application/json',
+    }
+
     response = requests.post(
         f'{settings.SUNO_API_BASE_URL}/generate',
         json=payload,
-        headers=HEADERS,
+        headers=headers,
         timeout=30,
     )
     print(f'[suno] POST /generate status={response.status_code} body={response.text}')

@@ -4,14 +4,16 @@ const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api'
 
 type RequestOptions = Omit<RequestInit, 'headers'> & {
 	token?: string | null;
+	extraHeaders?: Record<string, string>;
 };
 
 export async function apiRequest<T>(
 	path: string,
-	{ token, ...init }: RequestOptions = {}
+	{ token, extraHeaders, ...init }: RequestOptions = {}
 ): Promise<T> {
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json',
+		...extraHeaders,
 	};
 	if (token) headers['Authorization'] = `Bearer ${token}`;
 

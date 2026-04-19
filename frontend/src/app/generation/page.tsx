@@ -44,18 +44,36 @@ export default function GenerationPage() {
 	const tokenRef = useRef<string | undefined>(undefined);
 	useEffect(() => { tokenRef.current = session?.backendToken; }, [session?.backendToken]);
 
-	// Form-local state
-	const [prompt, setPrompt] = useState('');
-	const [style, setStyle] = useState('');
-	const [title, setTitle] = useState('');
-	const [instrumental, setInstrumental] = useState(false);
+	// Global generation state (persists across navigation)
+	const { status, result, error, draft, setDraft, startGeneration, dismiss } = useGeneration();
+
+	// Form state — initialised from the persisted draft
+	const [prompt, setPromptLocal] = useState(draft.prompt);
+	const [style, setStyleLocal] = useState(draft.style);
+	const [title, setTitleLocal] = useState(draft.title);
+	const [instrumental, setInstrumentalLocal] = useState(draft.instrumental);
 	const [hint, setHint] = useState(0);
 	const [credits, setCredits] = useState<number | null>(null);
 	const [avgMins] = useState(() => Math.floor(Math.random() * 7) + 2);
 	const [waveformSeed] = useState(() => Math.floor(Math.random() * 1000));
 
-	// Global generation state (persists across navigation)
-	const { status, result, error, startGeneration, dismiss } = useGeneration();
+	// API key — persisted in localStorage, lazy-initialized to avoid SSR mismatch
+	const [sunoApiKey, setSunoApiKey] = useState(() =>
+		typeof window !== 'undefined' ? (localStorage.getItem('suno_api_key') ?? '') : ''
+	);
+	const [apiKeyOpen, setApiKeyOpen] = useState(() =>
+		typeof window !== 'undefined' ? !!localStorage.getItem('suno_api_key') : false
+	);
+	const handleApiKeyChange = (val: string) => {
+		setSunoApiKey(val);
+		localStorage.setItem('suno_api_key', val);
+	};
+
+	// Helpers that keep both local state and global draft in sync
+	const setPrompt = (v: string) => { setPromptLocal(v); setDraft({ prompt: v }); };
+	const setStyle = (v: string) => { setStyleLocal(v); setDraft({ style: v }); };
+	const setTitle = (v: string) => { setTitleLocal(v); setDraft({ title: v }); };
+	const setInstrumental = (v: boolean) => { setInstrumentalLocal(v); setDraft({ instrumental: v }); };
 
 	useEffect(() => {
 		const id = setInterval(
@@ -78,7 +96,7 @@ export default function GenerationPage() {
 		if (!prompt.trim() || !style || !title.trim()) return;
 		const token = tokenRef.current;
 		if (!token) return;
-		await startGeneration({ prompt, style, title, instrumental }, token);
+		await startGeneration({ prompt, style, title, instrumental }, token, sunoApiKey || undefined);
 	};
 
 	const isSubmitting = status === 'loading' || status === 'polling';
@@ -291,7 +309,7 @@ export default function GenerationPage() {
 								type="button"
 								role="switch"
 								aria-checked={instrumental}
-								onClick={() => setInstrumental((v) => !v)}
+								onClick={() => setInstrumental(!instrumental)}
 								disabled={isSubmitting}
 								className="relative inline-flex h-7 w-14 shrink-0 cursor-pointer border transition-colors disabled:opacity-50"
 								style={{
@@ -313,6 +331,54 @@ export default function GenerationPage() {
 									}}
 								/>
 							</button>
+						</div>
+
+						{/* API key */}
+						<div
+							className="border-t border-b py-4"
+							style={{ borderColor: rule }}
+						>
+							<button
+								type="button"
+								onClick={() => setApiKeyOpen((o) => !o)}
+								className="w-full flex items-center justify-between font-mono text-[10px] tracking-[0.16em] uppercase"
+								style={{ color: mid }}
+							>
+								<span className="flex items-center gap-2">
+									{sunoApiKey && (
+										<span
+											className="w-1.5 h-1.5 rounded-full shrink-0"
+											style={{ background: accentDeep }}
+										/>
+									)}
+									Use your own Suno API key
+								</span>
+								<span
+									className="inline-block transition-transform duration-200"
+									style={{ transform: apiKeyOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+								>
+									↓
+								</span>
+							</button>
+							{apiKeyOpen && (
+								<div className="mt-4 flex flex-col gap-2">
+									<input
+										type="password"
+										value={sunoApiKey}
+										onChange={(e) => handleApiKeyChange(e.target.value)}
+										placeholder="sk-…"
+										className="w-full bg-transparent border-b font-mono text-sm outline-none py-2 placeholder:opacity-40"
+										style={{ borderColor: rule, color: ink }}
+										disabled={isSubmitting}
+									/>
+									<p
+										className="font-mono text-[9px] tracking-widest uppercase"
+										style={{ color: mid }}
+									>
+										Stored locally in your browser · overrides the server default
+									</p>
+								</div>
+							)}
 						</div>
 
 						{/* Submit */}

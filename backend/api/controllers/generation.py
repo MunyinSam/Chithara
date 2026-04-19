@@ -169,7 +169,8 @@ def generate_song(request):
     )
 
     try:
-        task_id = submit_generation(prompt, style, title, instrumental)
+        user_api_key = request.META.get('HTTP_X_SUNO_API_KEY', '')
+        task_id = submit_generation(prompt, style, title, instrumental, api_key=user_api_key)
         history.suno_task_id = task_id
         history.status = 'PROCESSING'
         history.save()

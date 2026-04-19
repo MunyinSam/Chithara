@@ -12,15 +12,26 @@ import type { HistoryEntry } from '@/src/types';
 
 type GenStatus = 'idle' | 'loading' | 'polling' | 'done' | 'error';
 
+export interface FormDraft {
+	prompt: string;
+	style: string;
+	title: string;
+	instrumental: boolean;
+}
+
 interface GenerationState {
 	status: GenStatus;
 	prompt: string;
 	style: string;
 	result: HistoryEntry | null;
 	error: string;
-	startGeneration: (input: GenerateSongInput, token: string) => Promise<void>;
+	draft: FormDraft;
+	setDraft: (patch: Partial<FormDraft>) => void;
+	startGeneration: (input: GenerateSongInput, token: string, sunoApiKey?: string) => Promise<void>;
 	dismiss: () => void;
 }
+
+const EMPTY_DRAFT: FormDraft = { prompt: '', style: '', title: '', instrumental: false };
 
 const GenerationContext = createContext<GenerationState | null>(null);
 
@@ -30,6 +41,7 @@ export function GenerationProvider({ children }: { children: React.ReactNode }) 
 	const [style, setStyle] = useState('');
 	const [result, setResult] = useState<HistoryEntry | null>(null);
 	const [error, setError] = useState('');
+	const [draft, setDraftState] = useState<FormDraft>(EMPTY_DRAFT);
 	const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
 	const stopPolling = () => {
@@ -39,7 +51,11 @@ export function GenerationProvider({ children }: { children: React.ReactNode }) 
 		}
 	};
 
-	const startGeneration = useCallback(async (input: GenerateSongInput, token: string) => {
+	const setDraft = useCallback((patch: Partial<FormDraft>) => {
+		setDraftState((prev) => ({ ...prev, ...patch }));
+	}, []);
+
+	const startGeneration = useCallback(async (input: GenerateSongInput, token: string, sunoApiKey?: string) => {
 		stopPolling();
 		setPrompt(input.prompt);
 		setStyle(input.style);
@@ -48,7 +64,7 @@ export function GenerationProvider({ children }: { children: React.ReactNode }) 
 		setStatus('loading');
 
 		try {
-			const data = await generationService.generate(input, token);
+			const data = await generationService.generate(input, token, sunoApiKey);
 			setStatus('polling');
 
 			pollRef.current = setInterval(async () => {
@@ -82,10 +98,11 @@ export function GenerationProvider({ children }: { children: React.ReactNode }) 
 		setError('');
 		setPrompt('');
 		setStyle('');
+		setDraftState(EMPTY_DRAFT);
 	}, []);
 
 	return (
-		<GenerationContext.Provider value={{ status, prompt, style, result, error, startGeneration, dismiss }}>
+		<GenerationContext.Provider value={{ status, prompt, style, result, error, draft, setDraft, startGeneration, dismiss }}>
 			{children}
 		</GenerationContext.Provider>
 	);
