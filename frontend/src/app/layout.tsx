@@ -3,6 +3,8 @@ import { Geist_Mono, Young_Serif } from 'next/font/google';
 import './globals.css';
 import { NavWrapper } from '../components/nav-wrapper';
 import { SessionProvider } from '../components/SessionProvider';
+import { GenerationProvider } from '../contexts/GenerationContext';
+import { GenerationToast } from '../components/GenerationToast';
 
 const geistMono = Geist_Mono({
 	variable: '--font-geist-mono',
@@ -32,8 +34,11 @@ export default function RootLayout({
 				className={`${youngSerif.variable} ${geistMono.variable} font-(family-name:--font-young-serif) antialiased`}
 			>
 				<SessionProvider>
-					<NavWrapper />
-					{children}
+					<GenerationProvider>
+						<NavWrapper />
+						{children}
+						<GenerationToast />
+					</GenerationProvider>
 				</SessionProvider>
 			</body>
 		</html>

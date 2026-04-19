@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { Waveform, MiniWave } from '@/src/components/landing/waveform';
 import { ParticleField } from '@/src/components/landing/atmosphere';
 import { generationService } from '@/src/services/generationService';
-import type { HistoryEntry } from '@/src/types';
+import { useGeneration } from '@/src/contexts/GenerationContext';
 
 const STYLES = [
 	'Lo-fi',
@@ -30,8 +30,6 @@ const PROMPT_HINTS = [
 	'a jazz quartet in an empty bar at 2am',
 ];
 
-type Status = 'idle' | 'loading' | 'polling' | 'done' | 'error';
-
 const ink = 'oklch(0.18 0.015 60)';
 const ink2 = 'oklch(0.32 0.015 60)';
 const mid = 'oklch(0.55 0.015 60)';
@@ -46,18 +44,18 @@ export default function GenerationPage() {
 	const tokenRef = useRef<string | undefined>(undefined);
 	useEffect(() => { tokenRef.current = session?.backendToken; }, [session?.backendToken]);
 
+	// Form-local state
 	const [prompt, setPrompt] = useState('');
 	const [style, setStyle] = useState('');
 	const [title, setTitle] = useState('');
 	const [instrumental, setInstrumental] = useState(false);
-	const [status, setStatus] = useState<Status>('idle');
-	const [error, setError] = useState('');
-	const [result, setResult] = useState<HistoryEntry | null>(null);
 	const [hint, setHint] = useState(0);
 	const [credits, setCredits] = useState<number | null>(null);
 	const [avgMins] = useState(() => Math.floor(Math.random() * 7) + 2);
 	const [waveformSeed] = useState(() => Math.floor(Math.random() * 1000));
-	const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+	// Global generation state (persists across navigation)
+	const { status, result, error, startGeneration, dismiss } = useGeneration();
 
 	useEffect(() => {
 		const id = setInterval(
@@ -75,52 +73,12 @@ export default function GenerationPage() {
 			.catch(() => {});
 	}, [session?.backendToken]);
 
-	const stopPolling = () => {
-		if (pollRef.current) clearInterval(pollRef.current);
-	};
-
-	const pollHistory = (historyId: number) => {
-		setStatus('polling');
-		pollRef.current = setInterval(async () => {
-			const token = tokenRef.current;
-			if (!token) return;
-			try {
-				const data = await generationService.getHistory(historyId, token);
-				if (data.status === 'COMPLETED') {
-					stopPolling();
-					setResult(data);
-					setStatus('done');
-				} else if (data.status === 'FAILED') {
-					stopPolling();
-					setError(data.error_message ?? 'Generation failed.');
-					setStatus('error');
-				}
-			} catch {
-				stopPolling();
-				setError('Failed to check generation status.');
-				setStatus('error');
-			}
-		}, 3000);
-	};
-
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!prompt.trim() || !style || !title.trim()) return;
-		setStatus('loading');
-		setError('');
-		setResult(null);
 		const token = tokenRef.current;
 		if (!token) return;
-		try {
-			const data = await generationService.generate(
-				{ prompt, style, title, instrumental },
-				token
-			);
-			pollHistory(data.history_id);
-		} catch (err: unknown) {
-			setError(err instanceof Error ? err.message : 'Something went wrong.');
-			setStatus('error');
-		}
+		await startGeneration({ prompt, style, title, instrumental }, token);
 	};
 
 	const isSubmitting = status === 'loading' || status === 'polling';
@@ -493,7 +451,7 @@ export default function GenerationPage() {
 								{error}
 							</p>
 							<button
-								onClick={() => setStatus('idle')}
+								onClick={dismiss}
 								className="mt-4 inline-flex items-center gap-2 font-mono text-[10px] tracking-widest uppercase under-link"
 								style={{ color: ink }}
 							>
@@ -580,8 +538,7 @@ export default function GenerationPage() {
 								<button
 									type="button"
 									onClick={() => {
-										setStatus('idle');
-										setResult(null);
+										dismiss();
 										setPrompt('');
 										setTitle('');
 									}}
