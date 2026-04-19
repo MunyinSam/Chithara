@@ -1,16 +1,23 @@
 import requests
+from datetime import date
+from django.conf import settings
 from django.core.files.base import ContentFile
+from django.db.models import F
 from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
+from rest_framework.throttling import UserRateThrottle
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from ..modules.GenerationQuota import GenerationQuota
 from ..modules.Song import Song
 from ..modules.GenerationHistory import GenerationHistory
-from ..serializer import GenerationHistorySerializer
-from ..services.suno import submit_generation, fetch_task_result
+from ..serializer import GenerationHistorySerializer, GenerateSongSerializer
+from ..services.suno import submit_generation, fetch_task_result, fetch_credits
+
+DAILY_GENERATION_LIMIT = getattr(settings, 'DAILY_GENERATION_LIMIT', 10)
 
 
 def _save_song_from_clip(history, clip, task_id):
@@ -120,24 +127,30 @@ class GenerationHistoryViewSet(viewsets.ModelViewSet):
     }}},
 )
 @api_view(['POST'])
+@throttle_classes([UserRateThrottle])
 def generate_song(request):
     """
     Submit a song generation request to Suno.
     Returns 202 immediately — poll GET /api/history/{id}/ for status.
     Status flow: PENDING → PROCESSING → COMPLETED | FAILED
     """
-    prompt = request.data.get('prompt', '').strip()
-    style = request.data.get('style', '').strip()
-    title = request.data.get('title', '').strip()
-    instrumental = request.data.get('instrumental', False)
 
-    if not prompt or not style or not title:
-        return Response(
-            {'error': 'prompt, style, and title are required'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    serializer = GenerateSongSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    prompt = serializer.validated_data['prompt']
+    style = serializer.validated_data['style']
+    title = serializer.validated_data['title']
+    instrumental = serializer.validated_data['instrumental']
 
     user = request.user
+    quota, _ = GenerationQuota.objects.get_or_create(user=user, date=date.today())
+    if quota.count >= DAILY_GENERATION_LIMIT:
+        return Response(
+            {'error': f'Daily generation limit of {DAILY_GENERATION_LIMIT} reached. Try again tomorrow.'},
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
 
     history = GenerationHistory.objects.create(
         user=user,
@@ -156,10 +169,28 @@ def generate_song(request):
         history.save()
         return Response({'error': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
 
+    GenerationQuota.objects.filter(pk=quota.pk).update(count=F('count') + 1)
+
     return Response(
         {'history_id': history.id, 'task_id': task_id, 'status': 'PROCESSING'},
         status=status.HTTP_202_ACCEPTED,
     )
+
+
+@extend_schema(
+    tags=['Generation'],
+    responses={200: {'type': 'object', 'properties': {
+        'credits': {'type': 'integer'},
+    }}},
+)
+@api_view(['GET'])
+def get_credits(request):
+    """Returns the remaining Suno API credits for this account."""
+    try:
+        credits = fetch_credits()
+        return Response({'credits': credits})
+    except Exception as exc:
+        return Response({'error': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
 
 
 @extend_schema(tags=['Generation'], exclude=True)
