@@ -21,10 +21,18 @@ class SongViewSet(viewsets.ModelViewSet):
     pagination_class = SongPagination
 
     def get_queryset(self):
-        qs = Song.objects.filter(owner=self.request.user).order_by('-created_at')
+        qs = Song.objects.filter(owner=self.request.user)
         privacy = self.request.query_params.get('privacy_status')
         if privacy in ('PUBLIC', 'PRIVATE'):
             qs = qs.filter(privacy_status=privacy)
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            qs = qs.filter(title__icontains=search)
+        ordering = self.request.query_params.get('ordering', '-created_at')
+        if ordering in ('created_at', '-created_at', 'title', '-title'):
+            qs = qs.order_by(ordering)
+        else:
+            qs = qs.order_by('-created_at')
         return qs
 
     def get_permissions(self):

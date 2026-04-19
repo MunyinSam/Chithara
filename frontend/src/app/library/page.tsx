@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import AudioPlayer from '@/src/components/AudioPlayer';
 import Link from 'next/link';
-import { songService } from '@/src/services/songService';
+import { songService, type SortOption } from '@/src/services/songService';
 import { generationService } from '@/src/services/generationService';
 import type { Song } from '@/src/types';
 
@@ -31,15 +31,18 @@ function SongCard({
 	active,
 	onSelect,
 	onTogglePrivacy,
+	onDelete,
 }: {
 	song: Song;
 	index: number;
 	active: boolean;
 	onSelect: (song: Song) => void;
 	onTogglePrivacy: (song: Song) => void;
+	onDelete: (song: Song) => void;
 }) {
 	const [open, setOpen] = useState(false);
 	const [copied, setCopied] = useState(false);
+	const [confirmDelete, setConfirmDelete] = useState(false);
 
 	const copyShareLink = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -216,6 +219,40 @@ function SongCard({
 								{copied ? '✓ Copied' : '⎘ Copy Link'}
 							</button>
 						)}
+
+						{/* Delete — two-step confirm */}
+						{!confirmDelete ? (
+							<button
+								onClick={() => setConfirmDelete(true)}
+								className="font-mono text-[10px] tracking-[0.16em] uppercase px-5 py-3 border transition-colors ml-auto"
+								style={{ borderColor: rule, color: mid }}
+							>
+								Delete
+							</button>
+						) : (
+							<span className="ml-auto flex items-center gap-2">
+								<span
+									className="font-mono text-[9px] tracking-widest uppercase"
+									style={{ color: mid }}
+								>
+									Sure?
+								</span>
+								<button
+									onClick={() => onDelete(song)}
+									className="font-mono text-[10px] tracking-[0.16em] uppercase px-4 py-3 border transition-colors"
+									style={{ borderColor: 'oklch(0.55 0.18 25)', color: 'oklch(0.45 0.18 25)' }}
+								>
+									Yes, delete
+								</button>
+								<button
+									onClick={() => setConfirmDelete(false)}
+									className="font-mono text-[10px] tracking-[0.16em] uppercase px-4 py-3 border transition-colors"
+									style={{ borderColor: rule, color: mid }}
+								>
+									Cancel
+								</button>
+							</span>
+						)}
 					</div>
 				</div>
 			)}
@@ -233,6 +270,10 @@ export default function LibraryPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const [filter, setFilter] = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL');
+	const [searchInput, setSearchInput] = useState('');
+	const [search, setSearch] = useState('');
+	const [sort, setSort] = useState<SortOption>('newest');
+	const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const [activeSong, setActiveSong] = useState<Song | null>(null);
 	const [credits, setCredits] = useState<number | null>(null);
 
@@ -243,14 +284,14 @@ export default function LibraryPage() {
 		const token = session.backendToken;
 
 		setLoading(true);
-		songService.getPage(token, page, filter === 'ALL' ? undefined : filter)
+		songService.getPage(token, page, filter === 'ALL' ? undefined : filter, search, sort)
 			.then((data) => {
 				setSongs(data.results);
 				setTotalCount(data.count);
 				setLoading(false);
 			})
 			.catch(() => { setError('Failed to load songs.'); setLoading(false); });
-	}, [session?.backendToken, sessionStatus, page, filter]);
+	}, [session?.backendToken, sessionStatus, page, filter, search, sort]);
 
 	useEffect(() => {
 		if (sessionStatus === 'loading' || !session?.backendToken) return;
@@ -261,6 +302,20 @@ export default function LibraryPage() {
 
 	const changeFilter = (f: 'ALL' | 'PUBLIC' | 'PRIVATE') => {
 		setFilter(f);
+		setPage(1);
+	};
+
+	const handleSearchInput = (value: string) => {
+		setSearchInput(value);
+		if (searchTimer.current) clearTimeout(searchTimer.current);
+		searchTimer.current = setTimeout(() => {
+			setSearch(value);
+			setPage(1);
+		}, 350);
+	};
+
+	const handleSort = (value: SortOption) => {
+		setSort(value);
 		setPage(1);
 	};
 
@@ -275,11 +330,28 @@ export default function LibraryPage() {
 		} catch {}
 	};
 
+	const deleteSong = async (song: Song) => {
+		const token = session?.backendToken;
+		if (!token) return;
+		try {
+			await songService.delete(song.id, token);
+			if (activeSong?.id === song.id) setActiveSong(null);
+			// Refresh current page (or go back one if it's now empty)
+			const newCount = totalCount - 1;
+			const newTotalPages = Math.ceil(newCount / PAGE_SIZE);
+			const targetPage = page > newTotalPages ? Math.max(1, newTotalPages) : page;
+			if (targetPage !== page) {
+				setPage(targetPage);
+			} else {
+				setSongs((prev) => prev.filter((s) => s.id !== song.id));
+				setTotalCount(newCount);
+			}
+		} catch {}
+	};
+
 	const selectSong = (song: Song) => {
 		setActiveSong((prev) => (prev?.id === song.id ? null : song));
 	};
-
-	const filtered = songs;
 
 	return (
 		<>
@@ -390,37 +462,51 @@ export default function LibraryPage() {
 							</div>
 						</div>
 
-						{/* Filter tabs */}
-						<div
-							className="flex gap-0 border mb-10 w-fit"
-							style={{ borderColor: rule }}
-						>
-							{(['ALL', 'PUBLIC', 'PRIVATE'] as const).map(
-								(f) => (
+						{/* Filter · Search · Sort toolbar */}
+						<div className="flex flex-wrap gap-3 mb-10 items-center">
+							{/* Filter tabs */}
+							<div
+								className="flex gap-0 border w-fit shrink-0"
+								style={{ borderColor: rule }}
+							>
+								{(['ALL', 'PUBLIC', 'PRIVATE'] as const).map((f) => (
 									<button
 										key={f}
 										onClick={() => changeFilter(f)}
 										className="font-mono text-[10px] tracking-widest uppercase px-5 py-2.5 transition-colors"
 										style={{
-											background:
-												filter === f
-													? ink
-													: 'transparent',
+											background: filter === f ? ink : 'transparent',
 											color: filter === f ? paper : mid,
-											borderRight:
-												f !== 'PRIVATE'
-													? `1px solid ${rule}`
-													: 'none',
+											borderRight: f !== 'PRIVATE' ? `1px solid ${rule}` : 'none',
 										}}
 									>
-										{f === 'ALL'
-											? 'All'
-											: f === 'PUBLIC'
-												? 'Public'
-												: 'Private'}
+										{f === 'ALL' ? 'All' : f === 'PUBLIC' ? 'Public' : 'Private'}
 									</button>
-								)
-							)}
+								))}
+							</div>
+
+							{/* Search input */}
+							<input
+								type="text"
+								value={searchInput}
+								onChange={(e) => handleSearchInput(e.target.value)}
+								placeholder="Search by title…"
+								className="flex-1 min-w-45 bg-transparent border px-4 py-2.5 font-mono text-[10px] tracking-widest uppercase placeholder:normal-case placeholder:tracking-normal outline-none"
+								style={{ borderColor: rule, color: ink }}
+							/>
+
+							{/* Sort select */}
+							<select
+								value={sort}
+								onChange={(e) => handleSort(e.target.value as SortOption)}
+								className="bg-transparent border px-4 py-2.5 font-mono text-[10px] tracking-widest uppercase outline-none cursor-pointer"
+								style={{ borderColor: rule, color: mid }}
+							>
+								<option value="newest">Newest first</option>
+								<option value="oldest">Oldest first</option>
+								<option value="title_asc">Title A–Z</option>
+								<option value="title_desc">Title Z–A</option>
+							</select>
 						</div>
 
 						{/* Loading */}
@@ -480,7 +566,7 @@ export default function LibraryPage() {
 						)}
 
 						{/* Empty state */}
-						{!loading && !error && filtered.length === 0 && (
+						{!loading && !error && songs.length === 0 && (
 							<div className="py-20 text-center">
 								<div
 									className="font-serif italic text-[60px] leading-none mb-4"
@@ -509,9 +595,9 @@ export default function LibraryPage() {
 						)}
 
 						{/* Song list */}
-						{!loading && !error && filtered.length > 0 && (
+						{!loading && !error && songs.length > 0 && (
 							<div className="flex flex-col">
-								{filtered.map((song, i) => (
+								{songs.map((song, i) => (
 									<SongCard
 										key={song.id}
 										song={song}
@@ -519,6 +605,7 @@ export default function LibraryPage() {
 										active={activeSong?.id === song.id}
 										onSelect={selectSong}
 										onTogglePrivacy={togglePrivacy}
+										onDelete={deleteSong}
 									/>
 								))}
 							</div>

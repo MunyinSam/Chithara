@@ -1,15 +1,27 @@
 import { apiRequest } from './client';
 import type { PaginatedResponse, Song } from '@/src/types';
 
+export type SortOption = 'newest' | 'oldest' | 'title_asc' | 'title_desc';
+
+const SORT_MAP: Record<SortOption, string> = {
+	newest:     '-created_at',
+	oldest:     'created_at',
+	title_asc:  'title',
+	title_desc: '-title',
+};
+
 export const songService = {
-	/** GET /songs/ — paginated library, 4 per page */
+	/** GET /songs/ — paginated, searchable, sortable library */
 	getPage(
 		token: string,
 		page = 1,
 		filter?: 'PUBLIC' | 'PRIVATE',
+		search?: string,
+		sort: SortOption = 'newest',
 	): Promise<PaginatedResponse<Song>> {
-		const params = new URLSearchParams({ page: String(page) });
+		const params = new URLSearchParams({ page: String(page), ordering: SORT_MAP[sort] });
 		if (filter) params.set('privacy_status', filter);
+		if (search?.trim()) params.set('search', search.trim());
 		return apiRequest<PaginatedResponse<Song>>(`/songs/?${params}`, { token });
 	},
 
@@ -25,5 +37,10 @@ export const songService = {
 			token,
 			body: JSON.stringify({ privacy_status }),
 		});
+	},
+
+	/** DELETE /songs/:id/ */
+	delete(id: number, token: string): Promise<void> {
+		return apiRequest<void>(`/songs/${id}/`, { method: 'DELETE', token });
 	},
 };
