@@ -24,6 +24,7 @@ export interface HistoryEntry {
 	prompt_used: string;
 	created_at: string;
 	error_message?: string;
+	is_mock?: boolean;
 	song?: Pick<Song, 'id' | 'title' | 'genre' | 'audio_file'>;
 }
 

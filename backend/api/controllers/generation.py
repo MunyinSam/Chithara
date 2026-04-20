@@ -16,7 +16,7 @@ from ..modules.GenerationQuota import GenerationQuota
 from ..modules.Song import Song
 from ..modules.GenerationHistory import GenerationHistory
 from ..serializer import GenerationHistorySerializer, GenerateSongSerializer
-from ..services.suno import submit_generation, fetch_task_result, fetch_credits
+from ..services import get_suno_service
 
 DAILY_GENERATION_LIMIT = getattr(settings, 'DAILY_GENERATION_LIMIT', 10)
 
@@ -32,9 +32,15 @@ def _save_song_from_clip(history, clip, task_id):
         if locked.status == 'COMPLETED':
             return
 
-        audio_url = clip.get('audioUrl') or clip.get('audio_url', '')
-        audio_resp = requests.get(audio_url, timeout=60)
-        audio_resp.raise_for_status()
+        local_path = clip.get('_local_path')
+        if local_path:
+            with open(local_path, 'rb') as f:
+                audio_content = f.read()
+        else:
+            audio_url = clip.get('audioUrl') or clip.get('audio_url', '')
+            audio_resp = requests.get(audio_url, timeout=60)
+            audio_resp.raise_for_status()
+            audio_content = audio_resp.content
 
         song = Song(
             owner=locked.user,
@@ -43,7 +49,7 @@ def _save_song_from_clip(history, clip, task_id):
             prompt=locked.prompt_used,
             privacy_status='PRIVATE',
         )
-        song.audio_file.save(f'{task_id}.mp3', ContentFile(audio_resp.content), save=False)
+        song.audio_file.save(f'{task_id}.mp3', ContentFile(audio_content), save=False)
         song.save()
 
         locked.song = song
@@ -67,7 +73,7 @@ def _sync_from_suno(history):
       { data: { response: { sunoData: [{ audioUrl, title, style, status }] } } }
     """
     try:
-        data = fetch_task_result(history.suno_task_id)
+        data = get_suno_service().fetch_task_result(history.suno_task_id)
         print(f'[suno sync] raw response for {history.suno_task_id}: {data}')
 
         inner      = data.get('data') or {}
@@ -83,7 +89,7 @@ def _sync_from_suno(history):
 
         print(f'[suno sync] parsed status={suno_status!r} clip keys={list(clip.keys())}')
 
-        if suno_status in ('SUCCESS', 'FIRST_SUCCESS') and clip.get('audioUrl'):
+        if suno_status in ('SUCCESS', 'FIRST_SUCCESS') and (clip.get('audioUrl') or clip.get('_local_path')):
             _save_song_from_clip(history, clip, history.suno_task_id)
         elif suno_status in SUNO_FAILURE_STATUSES:
             history.status = 'FAILED'
@@ -170,7 +176,7 @@ def generate_song(request):
 
     try:
         user_api_key = request.META.get('HTTP_X_SUNO_API_KEY', '')
-        task_id = submit_generation(prompt, style, title, instrumental, api_key=user_api_key)
+        task_id = get_suno_service().submit_generation(prompt, style, title, instrumental, api_key=user_api_key)
         history.suno_task_id = task_id
         history.status = 'PROCESSING'
         history.save()
@@ -198,7 +204,7 @@ def generate_song(request):
 def get_credits(request):
     """Returns the remaining Suno API credits for this account."""
     try:
-        credits = fetch_credits()
+        credits = get_suno_service().fetch_credits()
         return Response({'credits': credits})
     except Exception as exc:
         return Response({'error': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
