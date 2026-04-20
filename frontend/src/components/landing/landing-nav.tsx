@@ -134,7 +134,7 @@ export function LandingNav() {
 					</DropdownMenu>
 				) : (
 					<Link
-						href="/generation"
+						href="/login"
 						className={cn(
 							buttonVariants({ size: 'sm' }),
 							'font-mono text-[11px] tracking-[0.14em] uppercase rounded-none bg-[oklch(0.18_0.015_60)] text-[oklch(0.972_0.012_75)] hover:bg-(--accent-deep,oklch(0.48_0.17_35))'
