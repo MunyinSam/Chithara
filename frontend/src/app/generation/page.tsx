@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Textarea } from '@/src/components/ui/textarea';
@@ -567,24 +568,41 @@ export default function GenerationPage() {
 									</p>
 								</div>
 							)}
-							<div className="font-serif text-[48px] leading-[1.15]">
-								{result.song.title
-									.split(' ')
-									.slice(0, -1)
-									.join(' ')}{' '}
-								<span
-									className="italic"
-									style={{ color: accentDeep }}
+							<div className="flex gap-5 items-start">
+								{/* Cover art */}
+								<div
+									className="relative shrink-0 w-24 h-24 border overflow-hidden flex items-center justify-center"
+									style={{ borderColor: rule, background: paper2 }}
 								>
-									{result.song.title.split(' ').slice(-1)[0]}
-								</span>
+									{result.song.cover_image ? (
+										<Image
+											src={result.song.cover_image}
+											alt="cover"
+											fill
+											className="object-cover"
+											sizes="96px"
+										/>
+									) : (
+										<span
+											className="font-mono text-[8px] tracking-[0.14em] uppercase text-center px-2"
+											style={{ color: mid }}
+										>
+											No cover
+										</span>
+									)}
+								</div>
+								<div className="min-w-0">
+									<div className="font-serif text-[40px] leading-[1.15]">
+										{result.song.title.split(' ').slice(0, -1).join(' ')}{' '}
+										<span className="italic" style={{ color: accentDeep }}>
+											{result.song.title.split(' ').slice(-1)[0]}
+										</span>
+									</div>
+									<p className="font-serif italic text-lg mt-2" style={{ color: ink2 }}>
+										{result.song.genre}
+									</p>
+								</div>
 							</div>
-							<p
-								className="font-serif italic text-lg mt-2"
-								style={{ color: ink2 }}
-							>
-								{result.song.genre}
-							</p>
 
 							<div
 								className="mt-6 border-t border-b py-5 my-5"

@@ -14,6 +14,7 @@ class Song(models.Model):
     vibe = models.CharField(max_length=100, blank=True, null=True)
 
     audio_file = models.FileField(upload_to='songs/')
+    cover_image = models.FileField(upload_to='covers/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     PRIVACY_CHOICES = [

@@ -13,6 +13,19 @@ const nextConfig: NextConfig = {
 				protocol: 'https',
 				hostname: 'lh3.googleusercontent.com',
 			},
+			{
+				protocol: 'http',
+				hostname: 'localhost',
+				port: '8000',
+			},
+			{
+				protocol: 'https',
+				hostname: '*.ngrok-free.app',
+			},
+			{
+				protocol: 'https',
+				hostname: '*.ngrok-free.dev',
+			},
 		],
 	},
 };

@@ -7,6 +7,7 @@ export interface Song {
 	genre: string;
 	prompt: string;
 	audio_file: string;
+	cover_image: string | null;
 	created_at: string;
 	privacy_status: 'PUBLIC' | 'PRIVATE';
 	share_token: string | null;
@@ -25,7 +26,7 @@ export interface HistoryEntry {
 	created_at: string;
 	error_message?: string;
 	is_mock?: boolean;
-	song?: Pick<Song, 'id' | 'title' | 'genre' | 'audio_file'>;
+	song?: Pick<Song, 'id' | 'title' | 'genre' | 'audio_file' | 'cover_image'>;
 }
 
 export interface UserStats {

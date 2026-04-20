@@ -50,6 +50,16 @@ def _save_song_from_clip(history, clip, task_id):
             privacy_status='PRIVATE',
         )
         song.audio_file.save(f'{task_id}.mp3', ContentFile(audio_content), save=False)
+
+        image_url = clip.get('imageUrl') or clip.get('image_url', '')
+        if image_url:
+            try:
+                img_resp = requests.get(image_url, timeout=30)
+                img_resp.raise_for_status()
+                song.cover_image.save(f'{task_id}.jpg', ContentFile(img_resp.content), save=False)
+            except Exception as exc:
+                print(f'[suno] cover image download failed: {exc}')
+
         song.save()
 
         locked.song = song

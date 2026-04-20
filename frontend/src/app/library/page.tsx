@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import AudioPlayer from '@/src/components/AudioPlayer';
@@ -154,20 +155,46 @@ function SongCard({
 					className="px-7 pb-8 flex flex-col gap-6"
 					style={{ borderTop: `1px solid ${rule}` }}
 				>
-					{/* Full prompt */}
-					<div className="pt-6">
-						<p
-							className="font-mono text-[9px] tracking-[0.2em] uppercase mb-2"
-							style={{ color: mid }}
+					{/* Cover art + prompt row */}
+					<div className="pt-6 flex gap-6 items-start">
+						{/* Cover art */}
+						<div
+							className="relative shrink-0 w-[120px] h-[120px] border overflow-hidden flex items-center justify-center"
+							style={{ borderColor: rule, background: 'oklch(0.945 0.016 75)' }}
 						>
-							Full prompt
-						</p>
-						<p
-							className="font-serif italic text-[17px] leading-relaxed"
-							style={{ color: ink2 }}
-						>
-							&ldquo;{song.prompt}&rdquo;
-						</p>
+							{song.cover_image ? (
+								<Image
+									src={song.cover_image}
+									alt={`${song.title} cover`}
+									fill
+									className="object-cover"
+									sizes="120px"
+								/>
+							) : (
+								<span
+									className="font-mono text-[8px] tracking-[0.18em] uppercase text-center px-2"
+									style={{ color: mid }}
+								>
+									No cover
+								</span>
+							)}
+						</div>
+
+						{/* Full prompt */}
+						<div className="flex-1 min-w-0">
+							<p
+								className="font-mono text-[9px] tracking-[0.2em] uppercase mb-2"
+								style={{ color: mid }}
+							>
+								Full prompt
+							</p>
+							<p
+								className="font-serif italic text-[17px] leading-relaxed"
+								style={{ color: ink2 }}
+							>
+								&ldquo;{song.prompt}&rdquo;
+							</p>
+						</div>
 					</div>
 
 					{/* Metadata strip */}
