@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Textarea } from '@/src/components/ui/textarea';
@@ -100,6 +101,9 @@ export default function GenerationPage() {
 	};
 
 	const isSubmitting = status === 'loading' || status === 'polling';
+
+	// Auto-expand API key section when a mock song is returned
+	const apiKeyOpenResolved = apiKeyOpen || !!result?.is_mock;
 
 	const labelCls =
 		'block font-mono text-[10px] tracking-[0.16em] uppercase mb-2.5';
@@ -355,12 +359,12 @@ export default function GenerationPage() {
 								</span>
 								<span
 									className="inline-block transition-transform duration-200"
-									style={{ transform: apiKeyOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+									style={{ transform: apiKeyOpenResolved ? 'rotate(180deg)' : 'rotate(0deg)' }}
 								>
 									↓
 								</span>
 							</button>
-							{apiKeyOpen && (
+							{apiKeyOpenResolved && (
 								<div className="mt-4 flex flex-col gap-2">
 									<input
 										type="password"
@@ -551,24 +555,54 @@ export default function GenerationPage() {
 									Now playing
 								</span>
 							</div>
-							<div className="font-serif text-[48px] leading-[1.15]">
-								{result.song.title
-									.split(' ')
-									.slice(0, -1)
-									.join(' ')}{' '}
-								<span
-									className="italic"
-									style={{ color: accentDeep }}
+							{result.is_mock && (
+								<div
+									className="mb-5 border px-4 py-3"
+									style={{ borderColor: accentDeep, background: 'oklch(0.98 0.03 35 / 0.12)' }}
 								>
-									{result.song.title.split(' ').slice(-1)[0]}
-								</span>
+									<p className="font-mono text-[10px] tracking-[0.14em] uppercase mb-1" style={{ color: accentDeep }}>
+										Credits exhausted · Template song
+									</p>
+									<p className="font-serif italic text-sm" style={{ color: ink2 }}>
+										Your Suno account has run out of credits — this is a pre-rendered template, not your composition. Add your own Suno API key above to generate real songs.
+									</p>
+								</div>
+							)}
+							<div className="flex gap-5 items-start">
+								{/* Cover art */}
+								<div
+									className="relative shrink-0 w-24 h-24 border overflow-hidden flex items-center justify-center"
+									style={{ borderColor: rule, background: paper2 }}
+								>
+									{result.song.cover_image ? (
+										<Image
+											src={result.song.cover_image}
+											alt="cover"
+											fill
+											className="object-cover"
+											sizes="96px"
+										/>
+									) : (
+										<span
+											className="font-mono text-[8px] tracking-[0.14em] uppercase text-center px-2"
+											style={{ color: mid }}
+										>
+											No cover
+										</span>
+									)}
+								</div>
+								<div className="min-w-0">
+									<div className="font-serif text-[40px] leading-[1.15]">
+										{result.song.title.split(' ').slice(0, -1).join(' ')}{' '}
+										<span className="italic" style={{ color: accentDeep }}>
+											{result.song.title.split(' ').slice(-1)[0]}
+										</span>
+									</div>
+									<p className="font-serif italic text-lg mt-2" style={{ color: ink2 }}>
+										{result.song.genre}
+									</p>
+								</div>
 							</div>
-							<p
-								className="font-serif italic text-lg mt-2"
-								style={{ color: ink2 }}
-							>
-								{result.song.genre}
-							</p>
 
 							<div
 								className="mt-6 border-t border-b py-5 my-5"

@@ -183,6 +183,8 @@ REST_FRAMEWORK = {
 }
 
 # Suno API
+SUNO_PROVIDER = os.getenv('SUNO_PROVIDER', 'real')  # 'real' | 'mock' | 'auto'
+SUNO_CREDIT_THRESHOLD = int(os.getenv('SUNO_CREDIT_THRESHOLD', '14'))  # auto mode falls back to mock below this
 SUNO_API_KEY = os.getenv('SUNO_API_KEY', '')
 SUNO_API_BASE_URL = 'https://api.sunoapi.org/api/v1'
 SUNO_CALLBACK_URL = os.getenv('SUNO_CALLBACK_URL', 'http://localhost:8000/api/generate/callback/')

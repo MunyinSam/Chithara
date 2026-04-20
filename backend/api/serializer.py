@@ -60,17 +60,22 @@ class SongSerializer(serializers.ModelSerializer):
         model = Song
         fields = [
             'id', 'owner', 'title', 'genre', 'prompt', 'vibe',
-            'audio_file', 'created_at', 'privacy_status', 'share_token'
+            'audio_file', 'cover_image', 'created_at', 'privacy_status', 'share_token'
         ]
         read_only_fields = ['id', 'created_at', 'share_token']
 
 
 class GenerationHistorySerializer(serializers.ModelSerializer):
     song = SongSerializer(read_only=True)
+    is_mock = serializers.SerializerMethodField()
+
+    def get_is_mock(self, obj):
+        from .services.mock_suno import MOCK_PREFIX
+        return bool(obj.suno_task_id and obj.suno_task_id.startswith(MOCK_PREFIX))
 
     class Meta:
         model = GenerationHistory
-        fields = ['id', 'user', 'song', 'suno_task_id', 'prompt_used', 'status', 'created_at', 'error_message']
+        fields = ['id', 'user', 'song', 'suno_task_id', 'prompt_used', 'status', 'created_at', 'error_message', 'is_mock']
         read_only_fields = ['id', 'created_at']
 
 
