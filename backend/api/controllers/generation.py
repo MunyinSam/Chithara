@@ -94,12 +94,16 @@ def _sync_from_suno(history):
         if not suno_data:
             suno_data = inner.get('sunoData') or data.get('sunoData') or []
 
-        clip        = suno_data[0] if suno_data else {}
+        # Prefer the first clip that already has audio; fall back to clip[0] for status checks
+        clip_with_audio = next(
+            (c for c in suno_data if c.get('audioUrl') or c.get('_local_path')), None
+        )
+        clip        = clip_with_audio or (suno_data[0] if suno_data else {})
         suno_status = clip.get('status', '') or inner.get('status', '') or data.get('status', '')
 
         print(f'[suno sync] parsed status={suno_status!r} clip keys={list(clip.keys())}')
 
-        if suno_status in ('SUCCESS', 'FIRST_SUCCESS') and (clip.get('audioUrl') or clip.get('_local_path')):
+        if suno_status in ('SUCCESS', 'FIRST_SUCCESS') and clip_with_audio:
             _save_song_from_clip(history, clip, history.suno_task_id)
         elif suno_status in SUNO_FAILURE_STATUSES:
             history.status = 'FAILED'
@@ -245,13 +249,21 @@ def generation_callback(request):
     if history.status == 'COMPLETED':
         return Response({'ok': True})  # already handled by polling
 
-    clips = data.get('clips') or data.get('data') or []
-    clip = clips[0] if isinstance(clips, list) and clips else data
-    suno_status = clip.get('status', '')
+    inner = data.get('data') or {}
+    response = inner.get('response') or {}
+    suno_data = response.get('sunoData') or inner.get('sunoData') or data.get('clips') or []
 
-    if suno_status == 'complete' or data.get('code') == 200:
+    clip_with_audio = next(
+        (c for c in suno_data if c.get('audioUrl') or c.get('_local_path')), None
+    )
+    clip = clip_with_audio or (suno_data[0] if suno_data else data)
+    suno_status = inner.get('status', '') or clip.get('status', '')
+
+    if suno_status in ('SUCCESS', 'FIRST_SUCCESS') or data.get('code') == 200:
+        if not clip_with_audio:
+            return Response({'ok': True})  # still processing, wait for next callback
         try:
-            _save_song_from_clip(history, clip, task_id)
+            _save_song_from_clip(history, clip_with_audio, task_id)
         except Exception as exc:
             history.status = 'FAILED'
             history.error_message = f'Failed to download audio: {exc}'
