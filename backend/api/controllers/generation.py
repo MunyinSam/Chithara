@@ -1,7 +1,6 @@
 import requests
 from datetime import date
 from django.conf import settings
-from django.core.files.base import ContentFile
 from django.db import transaction
 from django.db.models import F
 from django.views.decorators.csrf import csrf_exempt
@@ -53,12 +52,7 @@ def _save_song_from_clip(history, clip, task_id):
 
         image_url = clip.get('imageUrl') or clip.get('image_url', '')
         if image_url:
-            try:
-                img_resp = requests.get(image_url, timeout=30)
-                img_resp.raise_for_status()
-                song.cover_image.save(f'{task_id}.jpg', ContentFile(img_resp.content), save=False)
-            except Exception as exc:
-                print(f'[suno] cover image download failed: {exc}')
+            song.cover_image = image_url
 
         song.save()
 
