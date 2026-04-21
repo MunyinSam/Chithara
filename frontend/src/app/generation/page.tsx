@@ -58,18 +58,6 @@ export default function GenerationPage() {
 	const [avgMins] = useState(() => Math.floor(Math.random() * 7) + 2);
 	const [waveformSeed] = useState(() => Math.floor(Math.random() * 1000));
 
-	// API key — persisted in localStorage, lazy-initialized to avoid SSR mismatch
-	const [sunoApiKey, setSunoApiKey] = useState(() =>
-		typeof window !== 'undefined' ? (localStorage.getItem('suno_api_key') ?? '') : ''
-	);
-	const [apiKeyOpen, setApiKeyOpen] = useState(() =>
-		typeof window !== 'undefined' ? !!localStorage.getItem('suno_api_key') : false
-	);
-	const handleApiKeyChange = (val: string) => {
-		setSunoApiKey(val);
-		localStorage.setItem('suno_api_key', val);
-	};
-
 	// Helpers that keep both local state and global draft in sync
 	const setPrompt = (v: string) => { setPromptLocal(v); setDraft({ prompt: v }); };
 	const setStyle = (v: string) => { setStyleLocal(v); setDraft({ style: v }); };
@@ -97,13 +85,10 @@ export default function GenerationPage() {
 		if (!prompt.trim() || !style || !title.trim()) return;
 		const token = tokenRef.current;
 		if (!token) return;
-		await startGeneration({ prompt, style, title, instrumental }, token, sunoApiKey || undefined);
+		await startGeneration({ prompt, style, title, instrumental }, token);
 	};
 
 	const isSubmitting = status === 'loading' || status === 'polling';
-
-	// Auto-expand API key section when a mock song is returned
-	const apiKeyOpenResolved = apiKeyOpen || !!result?.is_mock;
 
 	const labelCls =
 		'block font-mono text-[10px] tracking-[0.16em] uppercase mb-2.5';
@@ -337,54 +322,6 @@ export default function GenerationPage() {
 							</button>
 						</div>
 
-						{/* API key */}
-						<div
-							className="border-t border-b py-4"
-							style={{ borderColor: rule }}
-						>
-							<button
-								type="button"
-								onClick={() => setApiKeyOpen((o) => !o)}
-								className="w-full flex items-center justify-between font-mono text-[10px] tracking-[0.16em] uppercase"
-								style={{ color: mid }}
-							>
-								<span className="flex items-center gap-2">
-									{sunoApiKey && (
-										<span
-											className="w-1.5 h-1.5 rounded-full shrink-0"
-											style={{ background: accentDeep }}
-										/>
-									)}
-									Use your own Suno API key
-								</span>
-								<span
-									className="inline-block transition-transform duration-200"
-									style={{ transform: apiKeyOpenResolved ? 'rotate(180deg)' : 'rotate(0deg)' }}
-								>
-									↓
-								</span>
-							</button>
-							{apiKeyOpenResolved && (
-								<div className="mt-4 flex flex-col gap-2">
-									<input
-										type="password"
-										value={sunoApiKey}
-										onChange={(e) => handleApiKeyChange(e.target.value)}
-										placeholder="sk-…"
-										className="w-full bg-transparent border-b font-mono text-sm outline-none py-2 placeholder:opacity-40"
-										style={{ borderColor: rule, color: ink }}
-										disabled={isSubmitting}
-									/>
-									<p
-										className="font-mono text-[9px] tracking-widest uppercase"
-										style={{ color: mid }}
-									>
-										Stored locally in your browser · overrides the server default
-									</p>
-								</div>
-							)}
-						</div>
-
 						{/* Submit */}
 						<div className="flex items-center justify-between gap-6 flex-wrap pt-2">
 							<div
@@ -564,7 +501,7 @@ export default function GenerationPage() {
 										Credits exhausted · Template song
 									</p>
 									<p className="font-serif italic text-sm" style={{ color: ink2 }}>
-										Your Suno account has run out of credits — this is a pre-rendered template, not your composition. Add your own Suno API key above to generate real songs.
+										Your Suno account has run out of credits — this is a pre-rendered template, not your composition.
 									</p>
 								</div>
 							)}

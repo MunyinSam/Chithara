@@ -27,7 +27,7 @@ interface GenerationState {
 	error: string;
 	draft: FormDraft;
 	setDraft: (patch: Partial<FormDraft>) => void;
-	startGeneration: (input: GenerateSongInput, token: string, sunoApiKey?: string) => Promise<void>;
+	startGeneration: (input: GenerateSongInput, token: string) => Promise<void>;
 	dismiss: () => void;
 }
 
@@ -55,7 +55,7 @@ export function GenerationProvider({ children }: { children: React.ReactNode }) 
 		setDraftState((prev) => ({ ...prev, ...patch }));
 	}, []);
 
-	const startGeneration = useCallback(async (input: GenerateSongInput, token: string, sunoApiKey?: string) => {
+	const startGeneration = useCallback(async (input: GenerateSongInput, token: string) => {
 		stopPolling();
 		setPrompt(input.prompt);
 		setStyle(input.style);
@@ -64,7 +64,7 @@ export function GenerationProvider({ children }: { children: React.ReactNode }) 
 		setStatus('loading');
 
 		try {
-			const data = await generationService.generate(input, token, sunoApiKey);
+			const data = await generationService.generate(input, token);
 			setStatus('polling');
 
 			pollRef.current = setInterval(async () => {

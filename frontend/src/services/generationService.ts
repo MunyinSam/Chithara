@@ -15,12 +15,11 @@ export const generationService = {
 	},
 
 	/** POST /generate/ — kick off a new song generation */
-	generate(input: GenerateSongInput, token: string, sunoApiKey?: string): Promise<GenerationResult> {
+	generate(input: GenerateSongInput, token: string): Promise<GenerationResult> {
 		return apiRequest<GenerationResult>('/generate/', {
 			method: 'POST',
 			token,
 			body: JSON.stringify(input),
-			extraHeaders: sunoApiKey ? { 'X-Suno-API-Key': sunoApiKey } : undefined,
 		});
 	},
 
