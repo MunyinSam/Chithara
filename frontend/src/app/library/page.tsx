@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import AudioPlayer from '@/src/components/AudioPlayer';
 import Link from 'next/link';
 import { songService, type SortOption } from '@/src/services/songService';
+import { resolveMediaUrl } from '@/src/lib/resolveMediaUrl';
 import { generationService } from '@/src/services/generationService';
 import type { Song } from '@/src/types';
 
@@ -223,7 +224,7 @@ function SongCard({
 
 						{/* Secondary bordered buttons */}
 						<a
-							href={song.audio_file}
+							href={resolveMediaUrl(song.audio_file)}
 							download
 							className="font-mono text-[10px] tracking-[0.16em] uppercase px-5 py-3 border transition-colors"
 							style={{ borderColor: rule, color: ink2 }}

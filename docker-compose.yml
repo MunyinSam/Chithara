@@ -21,7 +21,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - media:/app/media
+      - ./backend/media:/app/media
     environment:
       SECRET_KEY: ${SECRET_KEY}
       DEBUG: "False"
@@ -72,5 +72,4 @@ services:
       - ngrok
 
 volumes:
-  media:
   postgres_data:

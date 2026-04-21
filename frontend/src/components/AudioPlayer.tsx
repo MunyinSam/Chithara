@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { resolveMediaUrl } from '@/src/lib/resolveMediaUrl';
 
 interface Song {
 	id: number;
@@ -279,7 +280,7 @@ export default function AudioPlayer({ song, onClose }: AudioPlayerProps) {
 
 			<audio
 				ref={audioRef}
-				src={song.audio_file}
+				src={resolveMediaUrl(song.audio_file)}
 				preload="auto"
 				onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime ?? 0)}
 				onLoadedMetadata={() => setDuration(audioRef.current?.duration ?? 0)}
