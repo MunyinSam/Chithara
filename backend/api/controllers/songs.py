@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
-from ..modules.Song import Song
+from ..models.Song import Song
 from ..serializer import SongSerializer
 
 

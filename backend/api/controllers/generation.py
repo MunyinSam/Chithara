@@ -1,6 +1,7 @@
 import requests
 from datetime import date
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.db import transaction
 from django.db.models import F
 from django.views.decorators.csrf import csrf_exempt
@@ -11,11 +12,12 @@ from rest_framework.throttling import UserRateThrottle
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ..modules.GenerationQuota import GenerationQuota
-from ..modules.Song import Song
-from ..modules.GenerationHistory import GenerationHistory
+from ..models.GenerationQuota import GenerationQuota
+from ..models.Song import Song
+from ..models.GenerationHistory import GenerationHistory
+from django.apps import apps
+
 from ..serializer import GenerationHistorySerializer, GenerateSongSerializer
-from ..services import get_suno_service
 
 DAILY_GENERATION_LIMIT = getattr(settings, 'DAILY_GENERATION_LIMIT', 10)
 
@@ -77,7 +79,7 @@ def _sync_from_suno(history):
       { data: { response: { sunoData: [{ audioUrl, title, style, status }] } } }
     """
     try:
-        data = get_suno_service().fetch_task_result(history.suno_task_id)
+        data = apps.get_app_config('api').suno.fetch_task_result(history.suno_task_id)
         print(f'[suno sync] raw response for {history.suno_task_id}: {data}')
 
         inner      = data.get('data') or {}
@@ -184,7 +186,7 @@ def generate_song(request):
 
     try:
         user_api_key = request.META.get('HTTP_X_SUNO_API_KEY', '')
-        task_id = get_suno_service().submit_generation(prompt, style, title, instrumental, api_key=user_api_key)
+        task_id = apps.get_app_config('api').suno.submit_generation(prompt, style, title, instrumental, api_key=user_api_key)
         history.suno_task_id = task_id
         history.status = 'PROCESSING'
         history.save()
@@ -212,7 +214,7 @@ def generate_song(request):
 def get_credits(request):
     """Returns the remaining Suno API credits for this account."""
     try:
-        credits = get_suno_service().fetch_credits()
+        credits = apps.get_app_config('api').suno.fetch_credits()
         return Response({'credits': credits})
     except Exception as exc:
         return Response({'error': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)

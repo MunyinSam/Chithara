@@ -21,12 +21,13 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - media:/app/media
+      - ./backend/media:/app/media
     environment:
       SECRET_KEY: ${SECRET_KEY}
       DEBUG: "False"
       SUNO_API_KEY: ${SUNO_API_KEY}
-      SUNO_CALLBACK_URL: ${SUNO_CALLBACK_URL:-http://localhost:8000/api/generate/callback/}
+      SUNO_CALLBACK_URL: ${SUNO_CALLBACK_URL:-}
+      NGROK_URL: ${NGROK_URL:-}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
       DB_NAME: ${DB_NAME:-chithara}
       DB_USER: ${DB_USER:-chithara}
@@ -36,6 +37,17 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    command: http backend:8000 --log=stdout
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    ports:
+      - "4040:4040"
+    depends_on:
+      - backend
 
   frontend:
     build:
@@ -57,7 +69,7 @@ services:
       AUTH_TRUST_HOST: "true"
     depends_on:
       - backend
+      - ngrok
 
 volumes:
-  media:
   postgres_data:

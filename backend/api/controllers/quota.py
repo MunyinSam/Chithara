@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from drf_spectacular.utils import extend_schema
 
-from ..modules.GenerationQuota import GenerationQuota
+from ..models.GenerationQuota import GenerationQuota
 from ..serializer import GenerationQuotaSerializer
 
 

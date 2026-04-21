@@ -8,11 +8,13 @@ class RealSunoService:
             'customMode': True,
             'instrumental': instrumental,
             'model': 'V4_5ALL',
-            'callBackUrl': settings.SUNO_CALLBACK_URL,
             'prompt': prompt,
             'style': style,
             'title': title,
         }
+        callback_url = getattr(settings, 'SUNO_CALLBACK_URL', '')
+        if callback_url:
+            payload['callBackUrl'] = callback_url
         headers = {
             'Authorization': f'Bearer {api_key or settings.SUNO_API_KEY}',
             'Content-Type': 'application/json',

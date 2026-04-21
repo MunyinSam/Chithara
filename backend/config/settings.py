@@ -75,7 +75,7 @@ CSRF_TRUSTED_ORIGINS = [
     *([NGROK_URL] if NGROK_URL else []),
 ]
 
-ROOT_URLCONF = 'backend.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -92,7 +92,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'backend.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database

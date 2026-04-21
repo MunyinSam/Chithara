@@ -450,7 +450,7 @@ export default function Home() {
 						</p>
 					</div>
 					<div className="flex flex-wrap gap-4 md:gap-6 justify-start md:justify-center">
-						<a className="under-link" href="#">
+						{/* <a className="under-link" href="#">
 							Generate
 						</a>
 						<a className="under-link" href="#">
@@ -458,7 +458,7 @@ export default function Home() {
 						</a>
 						<a className="under-link" href="#">
 							History
-						</a>
+						</a> */}
 						<a className="under-link" href="/api-docs">
 							API Docs
 						</a>

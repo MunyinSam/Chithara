@@ -6,9 +6,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from ..modules.User import User
-from ..modules.Song import Song
-from ..modules.GenerationHistory import GenerationHistory
+from ..models.User import User
+from ..models.Song import Song
+from ..models.GenerationHistory import GenerationHistory
 from ..serializer import UserSerializer, GoogleAuthSerializer
 
 
