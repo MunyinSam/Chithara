@@ -26,8 +26,8 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       DEBUG: "False"
       SUNO_API_KEY: ${SUNO_API_KEY}
-      SUNO_CALLBACK_URL: ${SUNO_CALLBACK_URL}
-      NGROK_URL: ${NGROK_URL}
+      SUNO_CALLBACK_URL: ${SUNO_CALLBACK_URL:-}
+      NGROK_URL: ${NGROK_URL:-}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
       DB_NAME: ${DB_NAME:-chithara}
       DB_USER: ${DB_USER:-chithara}
