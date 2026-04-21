@@ -53,6 +53,7 @@ postgres-data/
 *.sql
 *.dump
 *.backup
+*.sqlite3
 
 backend/__pycache__
 api/migrations/__pycache__
