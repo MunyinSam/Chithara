@@ -1,9 +1,9 @@
 import re
 from rest_framework import serializers
-from .modules.User import User
-from .modules.Song import Song
-from .modules.GenerationHistory import GenerationHistory
-from .modules.GenerationQuota import GenerationQuota
+from .models.User import User
+from .models.Song import Song
+from .models.GenerationHistory import GenerationHistory
+from .models.GenerationQuota import GenerationQuota
 
 
 def _strip_control_chars(value: str) -> str:

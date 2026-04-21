@@ -1,7 +1,7 @@
-from .modules.User import User
-from .modules.Song import Song
-from .modules.GenerationHistory import GenerationHistory
-from .modules.GenerationQuota import GenerationQuota
+from .models.User import User
+from .models.Song import Song
+from .models.GenerationHistory import GenerationHistory
+from .models.GenerationQuota import GenerationQuota
 
-# Just imports all db tables from /modules
+# Just imports all db tables from /models
 __all__ = ['User', 'Song', 'GenerationHistory', 'GenerationQuota']

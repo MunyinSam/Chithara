@@ -11,9 +11,9 @@ from rest_framework.throttling import UserRateThrottle
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ..modules.GenerationQuota import GenerationQuota
-from ..modules.Song import Song
-from ..modules.GenerationHistory import GenerationHistory
+from ..models.GenerationQuota import GenerationQuota
+from ..models.Song import Song
+from ..models.GenerationHistory import GenerationHistory
 from ..serializer import GenerationHistorySerializer, GenerateSongSerializer
 from ..services import get_suno_service
 
