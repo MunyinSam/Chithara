@@ -7,8 +7,11 @@ A walkthrough of the main features once the app is running at http://localhost:3
 ## Signing in
 
 1. Open http://localhost:3000
-2. Click **Sign in / Register with Google**
-3. Complete the Google sign-in flow
+2. Click Start
+![alt text](image-3.png)
+3. Click **Sign in / Register with Google**
+![alt text](image-4.png)
+4. Complete the Google sign-in flow
 
 Your account is created automatically on your first sign-in — there is no separate registration step.
 

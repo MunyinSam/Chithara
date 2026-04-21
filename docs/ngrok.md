@@ -18,6 +18,7 @@ The `docker-compose.yml` already includes an ngrok container. You just need an a
 
 1. Sign up at [ngrok.com](https://ngrok.com)
 2. Go to [dashboard.ngrok.com/get-started/your-authtoken](https://dashboard.ngrok.com/get-started/your-authtoken)
+![alt text](image-1.png)
 3. Copy your token
 
 ### 2. Start Docker with ngrok enabled

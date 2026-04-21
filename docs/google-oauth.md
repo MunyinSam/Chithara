@@ -23,6 +23,7 @@ Chithara uses Google as its only sign-in provider. You need to create OAuth cred
 
 1. Go to **APIs & Services** → **Credentials**
 2. Click **+ Create Credentials** → **OAuth 2.0 Client ID**
+![alt text](image-2.png)
 3. If prompted, configure the **OAuth consent screen** first:
    - User type: **External**
    - Fill in the app name, support email, and developer email
@@ -35,6 +36,8 @@ Chithara uses Google as its only sign-in provider. You need to create OAuth cred
 ---
 
 ## 4. Set authorised origins and redirect URIs
+
+![alt text](image.png)
 
 Under the client ID you just created, add:
 
