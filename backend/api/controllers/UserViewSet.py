@@ -9,7 +9,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from ..models.User import User
 from ..models.Song import Song
 from ..models.GenerationHistory import GenerationHistory
-from ..serializer import UserSerializer, GoogleAuthSerializer
+from ..serializers.UserSerializer import UserSerializer
+from ..serializers.GoogleAuthSerializer import GoogleAuthSerializer
 
 
 @extend_schema(tags=['Users'])

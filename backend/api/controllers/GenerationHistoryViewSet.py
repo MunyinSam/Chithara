@@ -17,17 +17,13 @@ from ..models.Song import Song
 from ..models.GenerationHistory import GenerationHistory
 from django.apps import apps
 
-from ..serializer import GenerationHistorySerializer, GenerateSongSerializer
+from ..serializers.GenerationHistorySerializer import GenerationHistorySerializer
+from ..serializers.GenerateSongSerializer import GenerateSongSerializer
 
 DAILY_GENERATION_LIMIT = getattr(settings, 'DAILY_GENERATION_LIMIT', 10)
 
 
 def _save_song_from_clip(history, clip, task_id):
-    """
-    Download audio from Suno clip data, create a Song, and mark history COMPLETED.
-    Uses select_for_update to prevent duplicate songs when polling and callback race.
-    Raises on any failure so the caller can mark FAILED.
-    """
     with transaction.atomic():
         locked = GenerationHistory.objects.select_for_update().get(pk=history.pk)
         if locked.status == 'COMPLETED':
@@ -71,13 +67,6 @@ SUNO_FAILURE_STATUSES = {
 }
 
 def _sync_from_suno(history):
-    """
-    Ask Suno for the latest task status and update history in-place.
-    Called whenever the frontend polls a PROCESSING record.
-
-    Response shape:
-      { data: { response: { sunoData: [{ audioUrl, title, style, status }] } } }
-    """
     try:
         data = apps.get_app_config('api').suno.fetch_task_result(history.suno_task_id)
         print(f'[suno sync] raw response for {history.suno_task_id}: {data}')
@@ -86,11 +75,9 @@ def _sync_from_suno(history):
         response   = inner.get('response') or {}
         suno_data  = response.get('sunoData') or []
 
-        # Some responses put clips at top level
         if not suno_data:
             suno_data = inner.get('sunoData') or data.get('sunoData') or []
 
-        # Prefer the first clip that already has audio; fall back to clip[0] for status checks
         clip_with_audio = next(
             (c for c in suno_data if c.get('audioUrl') or c.get('_local_path')), None
         )
@@ -105,7 +92,6 @@ def _sync_from_suno(history):
             history.status = 'FAILED'
             history.error_message = f'Suno status: {suno_status}'
             history.save()
-        # PENDING / TEXT_SUCCESS / FIRST_SUCCESS → still running, leave as PROCESSING
 
     except Exception as exc:
         print(f'[suno sync] error for task {history.suno_task_id}: {exc}')
@@ -119,11 +105,6 @@ class GenerationHistoryViewSet(viewsets.ModelViewSet):
         return GenerationHistory.objects.filter(user=self.request.user)
 
     def retrieve(self, request, *args, **kwargs):
-        """
-        On every GET /api/history/{id}/, if the record is still PROCESSING
-        we synchronously ask Suno for the latest status before responding.
-        This replaces the need for a working callback URL in development.
-        """
         instance = self.get_object()
         if instance.status == 'PROCESSING' and instance.suno_task_id:
             _sync_from_suno(instance)
@@ -154,12 +135,6 @@ class GenerationHistoryViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @throttle_classes([UserRateThrottle])
 def generate_song(request):
-    """
-    Submit a song generation request to Suno.
-    Returns 202 immediately — poll GET /api/history/{id}/ for status.
-    Status flow: PENDING → PROCESSING → COMPLETED | FAILED
-    """
-
     serializer = GenerateSongSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -212,7 +187,6 @@ def generate_song(request):
 )
 @api_view(['GET'])
 def get_credits(request):
-    """Returns the remaining Suno API credits for this account."""
     try:
         credits = apps.get_app_config('api').suno.fetch_credits()
         return Response({'credits': credits})
@@ -225,11 +199,6 @@ def get_credits(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def generation_callback(request):
-    """
-    Called by Suno when a generation job completes or fails.
-    Works in production when the callback URL is publicly reachable.
-    In development the retrieve() poll above handles this instead.
-    """
     data = request.data
     task_id = (data.get('taskId') or data.get('task_id')
                or data.get('data', {}).get('taskId'))
@@ -243,7 +212,7 @@ def generation_callback(request):
         return Response({'error': 'unknown taskId'}, status=status.HTTP_404_NOT_FOUND)
 
     if history.status == 'COMPLETED':
-        return Response({'ok': True})  # already handled by polling
+        return Response({'ok': True})
 
     inner = data.get('data') or {}
     response = inner.get('response') or {}
@@ -257,7 +226,7 @@ def generation_callback(request):
 
     if suno_status in ('SUCCESS', 'FIRST_SUCCESS') or data.get('code') == 200:
         if not clip_with_audio:
-            return Response({'ok': True})  # still processing, wait for next callback
+            return Response({'ok': True})
         try:
             _save_song_from_clip(history, clip_with_audio, task_id)
         except Exception as exc:

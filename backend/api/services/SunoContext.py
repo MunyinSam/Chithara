@@ -1,16 +1,8 @@
-from .base import SunoService
-from .mock_suno import MOCK_PREFIX
+from .SunoService import SunoService
+from .MockSunoService import MOCK_PREFIX
 
 
 class SunoContext:
-    """
-    Strategy Pattern context.
-
-    Holds real and mock strategy objects and selects between them on every
-    submit_generation call based on available credits — so generations fall
-    back to mock automatically without restarting the server.
-    """
-
     def __init__(self, real: SunoService, mock: SunoService, credit_threshold: int = 14):
         self._real = real
         self._mock = mock
@@ -31,7 +23,6 @@ class SunoContext:
         return self._select().submit_generation(prompt, style, title, instrumental, api_key)
 
     def fetch_task_result(self, task_id: str) -> dict:
-        # Route by task_id prefix so mock tasks always go to the mock strategy
         if task_id.startswith(MOCK_PREFIX):
             return self._mock.fetch_task_result(task_id)
         return self._real.fetch_task_result(task_id)

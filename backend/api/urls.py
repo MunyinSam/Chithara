@@ -1,10 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .controllers.users import UserViewSet, google_auth
-from .controllers.songs import SongViewSet
-from .controllers.generation import GenerationHistoryViewSet, generate_song, generation_callback, get_credits
-from .controllers.quota import GenerationQuotaViewSet
+from .controllers.UserViewSet import UserViewSet, google_auth
+from .controllers.SongViewSet import SongViewSet
+from .controllers.GenerationHistoryViewSet import GenerationHistoryViewSet, generate_song, generation_callback, get_credits
+from .controllers.GenerationQuotaViewSet import GenerationQuotaViewSet
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)

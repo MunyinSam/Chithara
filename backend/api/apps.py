@@ -8,9 +8,9 @@ class ApiConfig(AppConfig):
 
     def ready(self):
         from django.conf import settings
-        from .services.real_suno import RealSunoService
-        from .services.mock_suno import MockSunoService
-        from .services.context import SunoContext
+        from .services.RealSunoService import RealSunoService
+        from .services.MockSunoService import MockSunoService
+        from .services.SunoContext import SunoContext
 
         provider = getattr(settings, 'SUNO_PROVIDER', 'real').lower()
         threshold = int(getattr(settings, 'SUNO_CREDIT_THRESHOLD', 14))

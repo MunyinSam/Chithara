@@ -1,3 +1,3 @@
-from .context import SunoContext
+from .SunoContext import SunoContext
 
 __all__ = ['SunoContext']

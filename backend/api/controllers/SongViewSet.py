@@ -1,18 +1,12 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
 from ..models.Song import Song
-from ..serializer import SongSerializer
-
-
-class SongPagination(PageNumberPagination):
-    page_size = 4
-    page_size_query_param = 'page_size'
-    max_page_size = 100
+from ..serializers.SongSerializer import SongSerializer
+from .SongPagination import SongPagination
 
 
 @extend_schema(tags=['Songs'])
