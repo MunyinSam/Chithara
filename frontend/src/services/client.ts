@@ -19,5 +19,6 @@ export async function apiRequest<T>(
 
 	const res = await fetch(`${BASE}${path}`, { ...init, headers });
 	if (!res.ok) throw new Error(`API ${init.method ?? 'GET'} ${path} failed: ${res.status}`);
+	if (res.status === 204 || res.headers.get('content-length') === '0') return undefined as T;
 	return res.json() as Promise<T>;
 }

@@ -181,14 +181,14 @@ export default function ProfilePage() {
 				</div>
 
 				{/* Stats */}
-				<div
+				{/* <div
 					className="border border-t-0 mb-12 grid grid-cols-3"
 					style={{ borderColor: rule }}
 				>
 					<StatBlock label="Songs generated" value={stats?.total_songs ?? '—'} />
 					<StatBlock label="Public songs" value={stats?.public_songs ?? '—'} />
 					<StatBlock label="Total prompts" value={stats?.total_generations ?? '—'} />
-				</div>
+				</div> */}
 
 				{/* Quick links */}
 				<div className="pt-8 border-t flex gap-4" style={{ borderColor: rule }}>
